@@ -1,0 +1,14 @@
+[package]
+name = "otter-stellar-verify"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+kani = { workspace = true, optional = true }
+stellar-sdk-macros = { path = "../stellar-sdk-macros" }
+
+
+[features]
+default = []
+kani = ["dep:kani"]
