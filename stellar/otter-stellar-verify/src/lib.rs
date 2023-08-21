@@ -2,7 +2,7 @@ pub mod address;
 pub mod env;
 pub mod types;
 
-// pub use stellar_sdk_macros::{contract, contractimpl};
+pub use stellar_sdk_macros::{contract, contractimpl};
 
 #[cfg(any(kani, feature = "kani"))]
 mod verification {
