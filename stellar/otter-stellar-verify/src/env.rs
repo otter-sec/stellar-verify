@@ -35,7 +35,10 @@ impl Env {
     }
 
     fn default_with_testutils() -> Env {
-        todo!()
+        Env {
+            env_impl: internal::EnvImpl::default(),
+            _snapshot: None,
+        }
     }
 
     pub fn current_contract_address(&self) -> Address {

@@ -2,6 +2,7 @@ use std::cmp::Ordering;
 
 use crate::soroban_env_common::val::Val;
 use crate::types::ScAddress;
+use crate::Env;
 
 #[cfg(any(kani, feature = "kani"))]
 use crate::types::Hash;
@@ -27,13 +28,23 @@ impl Ord for Address {
 
 impl PartialOrd for Address {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.obj.partial_cmp(&other.obj)
+        Some(self.cmp(other))
     }
 }
 
 impl Address {
     pub fn require_auth_for_args(&self, _args: Vec<Val>) {
         todo!()
+    }
+}
+
+#[cfg(any(kani, feature = "kani"))]
+impl Address {
+    pub fn random(env: &Env) -> Self {
+        let hash: Hash = kani::any();
+        Address {
+            obj: ScAddress::Contract(hash),
+        }
     }
 }
 
