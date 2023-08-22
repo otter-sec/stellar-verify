@@ -212,7 +212,7 @@ impl Tag {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Val(u64);
 
 impl Val {

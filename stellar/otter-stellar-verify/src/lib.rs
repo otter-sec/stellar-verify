@@ -4,6 +4,7 @@ pub mod crypto;
 pub mod env;
 pub mod events;
 pub mod ledger;
+pub mod random;
 pub mod soroban_env_common;
 pub mod soroban_env_host;
 pub mod soroban_ledger_snapshot;
@@ -28,7 +29,6 @@ mod verification {
     pub fn check_address() {
         let _address: address::Address = kani::any();
         let _address2: address::Address = kani::any();
-        let _s: Uint256 = kani::any();
         let test = Uint256::from_u128(12);
         assert_eq!(test, Uint256::from_u32(12));
     }

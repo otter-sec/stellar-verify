@@ -1,6 +1,9 @@
 use std::fmt::Debug;
 
-use crate::{env::Env, soroban_env_common::StorageType};
+use crate::{
+    env::{internal, Env},
+    soroban_env_common::StorageType,
+};
 
 #[derive(Clone)]
 pub struct Storage {
@@ -37,9 +40,13 @@ impl Storage {
         }
     }
 
+    fn has_internal<K>(&self, key: &K, storage_type: StorageType) -> bool {
+        todo!()
+    }
+
     #[inline(always)]
     pub(crate) fn has<K>(&self, key: &K, storage_type: StorageType) -> bool {
-        todo!()
+        self.has_internal(key, storage_type)
     }
 
     #[inline(always)]

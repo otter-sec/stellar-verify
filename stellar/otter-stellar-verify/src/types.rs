@@ -25,7 +25,8 @@ pub enum ScVal {
 }
 
 #[derive(Clone, Hash, Debug, PartialEq, Eq, PartialOrd, Ord)]
-#[cfg_attr(kani, derive(kani::Arbitrary))]
+//#[cfg_attr(kani, derive(kani::Arbitrary))]
+
 pub struct Uint256(pub [u8; 32]);
 
 impl Uint256 {
@@ -61,11 +62,13 @@ impl Default for Uint256 {
 pub struct Hash(pub [u8; 32]);
 
 #[derive(Clone, Hash, Debug, PartialEq, Eq, PartialOrd, Ord, Default)]
-#[cfg_attr(kani, derive(kani::Arbitrary))]
-pub struct PublicKey(Uint256);
+//#[cfg_attr(kani, derive(kani::Arbitrary))]
+
+pub struct PublicKey(pub Uint256);
 
 #[derive(Clone, Hash, Debug, PartialEq, Eq, PartialOrd, Ord)]
-#[cfg_attr(kani, derive(kani::Arbitrary))]
+//#[cfg_attr(kani, derive(kani::Arbitrary))]
+
 pub struct AccountId(pub PublicKey);
 
 #[derive(Clone, Hash, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -75,21 +78,24 @@ pub enum ScAddress {
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-#[cfg_attr(kani, derive(kani::Arbitrary))]
+//#[cfg_attr(kani, derive(kani::Arbitrary))]
+
 pub struct UInt128Parts {
     pub hi: u64,
     pub lo: u64,
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-#[cfg_attr(kani, derive(kani::Arbitrary))]
+//#[cfg_attr(kani, derive(kani::Arbitrary))]
+
 pub struct Int128Parts {
     pub hi: i64,
     pub lo: u64,
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-#[cfg_attr(kani, derive(kani::Arbitrary))]
+//#[cfg_attr(kani, derive(kani::Arbitrary))]
+
 pub struct UInt256Parts {
     pub hi_hi: u64,
     pub hi_lo: u64,
@@ -98,7 +104,8 @@ pub struct UInt256Parts {
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-#[cfg_attr(kani, derive(kani::Arbitrary))]
+//#[cfg_attr(kani, derive(kani::Arbitrary))]
+
 pub struct Int256Parts {
     pub hi_hi: i64,
     pub hi_lo: u64,
@@ -107,21 +114,41 @@ pub struct Int256Parts {
 }
 
 #[derive(Debug, Clone, Hash, Ord, PartialOrd, Eq, PartialEq)]
-#[cfg_attr(kani, derive(kani::Arbitrary))]
+//#[cfg_attr(kani, derive(kani::Arbitrary))]
+
 pub struct Duration(pub u64);
 
 #[derive(Debug, Clone, Hash, Ord, PartialOrd, Eq, PartialEq)]
-#[cfg_attr(kani, derive(kani::Arbitrary))]
+//#[cfg_attr(kani, derive(kani::Arbitrary))]
+
 pub struct TimePoint(pub u64);
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct BytesM<const MAX: u32 = { u32::MAX }>(Vec<u8>);
+
+impl<const MAX: u32> Default for BytesM<MAX> {
+    fn default() -> Self {
+        Self(Vec::default())
+    }
+}
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ScBytes(pub BytesM);
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct StringM<const MAX: u32 = { u32::MAX }>(Vec<u8>);
+
+impl<const MAX: u32> StringM<MAX> {
+    pub fn new() -> Self {
+        StringM(Vec::with_capacity(MAX as usize))
+    }
+}
+
+impl<const MAX: u32> Default for StringM<MAX> {
+    fn default() -> Self {
+        StringM::new()
+    }
+}
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ScString(pub StringM);
@@ -132,6 +159,18 @@ pub struct ScSymbol(pub StringM<32>);
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct VecM<T, const MAX: u32 = { u32::MAX }>(Vec<T>);
 
+impl<T, const MAX: u32> VecM<T, MAX> {
+    pub fn new() -> Self {
+        VecM(Vec::with_capacity(MAX as usize))
+    }
+}
+
+impl<T, const MAX: u32> Default for VecM<T, MAX> {
+    fn default() -> Self {
+        VecM::new()
+    }
+}
+
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ScVec(pub VecM<ScVal>);
 
@@ -140,14 +179,48 @@ pub struct ScMapEntry {
     pub key: ScVal,
     pub val: ScVal,
 }
+
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ScMap(pub VecM<ScMapEntry>);
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub enum ScError {}
+
+pub enum ScError {
+    Contract(u32),
+    WasmVm(ScErrorCode),
+    Context(ScErrorCode),
+    Storage(ScErrorCode),
+    Object(ScErrorCode),
+    Crypto(ScErrorCode),
+    Events(ScErrorCode),
+    Budget(ScErrorCode),
+    Value(ScErrorCode),
+    Auth(ScErrorCode),
+}
+
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(
+    all(feature = "serde", feature = "alloc"),
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
+#[repr(i32)]
+pub enum ScErrorCode {
+    ArithDomain = 0,
+    IndexBounds = 1,
+    InvalidInput = 2,
+    MissingValue = 3,
+    ExistingValue = 4,
+    ExceededLimit = 5,
+    InvalidAction = 6,
+    InternalError = 7,
+    UnexpectedType = 8,
+    UnexpectedSize = 9,
+}
 
 #[derive(Debug, Clone, Hash, Ord, PartialOrd, Eq, PartialEq)]
-#[cfg_attr(kani, derive(kani::Arbitrary))]
+//#[cfg_attr(kani, derive(kani::Arbitrary))]
+
 pub struct ScNonceKey {
     pub nonce: i64,
 }
@@ -195,6 +268,12 @@ pub struct String64(pub StringM<64>);
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct String32(pub StringM<32>);
+
+impl Default for String32 {
+    fn default() -> Self {
+        String32(StringM::default())
+    }
+}
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct SignerKeyEd25519SignedPayload {

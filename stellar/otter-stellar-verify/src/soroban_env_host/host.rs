@@ -1,4 +1,11 @@
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
+
+use crate::soroban_env_common::StorageType;
+use crate::types::{ContractExecutable, Hash, ScContractInstance, ScErrorCode};
+
+use super::error::HostError;
+use super::storage::Storage;
+use super::xdr::{LedgerEntry, LedgerKey, ScErrorType};
 
 #[derive(Debug, Clone, Default)]
 pub struct LedgerInfo {
@@ -13,7 +20,9 @@ pub struct LedgerInfo {
 }
 
 #[derive(Clone, Default)]
-pub(crate) struct HostImpl {}
+pub(crate) struct HostImpl {
+    storage: RefCell<Storage>,
+}
 
 #[derive(Clone)]
 pub struct Host(pub(crate) Rc<HostImpl>);
@@ -22,5 +31,39 @@ pub struct Host(pub(crate) Rc<HostImpl>);
 impl Default for Host {
     fn default() -> Self {
         Self(Default::default())
+    }
+}
+
+impl Host {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn storage(&self) -> RefCell<Storage> {
+        self.0.storage.clone()
+    }
+
+    pub fn get_ledger_info(&self) -> LedgerInfo {
+        LedgerInfo::default()
+    }
+
+    pub fn with_mut_storage<F, R>(&self, f: F) -> R
+    where
+        F: FnOnce(&mut Storage) -> R,
+    {
+        f(&mut self.0.storage.borrow_mut())
+    }
+
+    pub fn add_ledger_entry(
+        &self,
+        key: &Rc<LedgerKey>,
+        val: &Rc<LedgerEntry>,
+    ) -> Result<(), HostError> {
+        self.with_mut_storage(|storage| storage.put(key, val));
+        Ok(())
+    }
+
+    pub fn has(&self, key: &LedgerKey) -> bool {
+        self.0.storage.borrow().has(key)
     }
 }

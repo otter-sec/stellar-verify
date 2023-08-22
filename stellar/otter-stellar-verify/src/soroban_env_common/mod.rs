@@ -1,5 +1,6 @@
 use num_derive::FromPrimitive;
 
+pub mod error;
 pub mod num;
 pub mod val;
 pub mod wrapper_macros;

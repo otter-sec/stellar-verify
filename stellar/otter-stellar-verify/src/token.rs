@@ -17,6 +17,10 @@ impl Client {
 pub struct AdminClient {}
 
 impl AdminClient {
+    pub fn new(env: &Env, address: &Address) -> Self {
+        Self {}
+    }
+
     pub fn mint(&self, _to: &Address, _amount: &i128) {
         todo!()
     }
