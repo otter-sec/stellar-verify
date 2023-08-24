@@ -34,9 +34,7 @@ impl PartialOrd for Address {
 }
 
 impl Address {
-    pub fn require_auth_for_args(&self, _args: (Address, Address, i128, i128)) {
-        todo!()
-    }
+    pub fn require_auth_for_args(&self, _args: (Address, Address, i128, i128)) {}
     pub fn require_auth(&self) {}
 }
 

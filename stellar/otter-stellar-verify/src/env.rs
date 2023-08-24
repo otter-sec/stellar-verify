@@ -38,6 +38,8 @@ impl Env {
         }
     }
 
+    pub fn mock_all_auths(&self) {}
+
     pub fn register_stellar_asset_contract(&self, admin: Address) -> Address {
         let contract_address = Address::random(self);
         let token = MockToken::new(

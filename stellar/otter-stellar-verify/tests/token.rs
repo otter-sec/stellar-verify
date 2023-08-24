@@ -16,6 +16,7 @@ fn test_mint_and_transfer() {
 
     let a = Address::random(&env);
     let b = Address::random(&env);
+    assert!(a != b);
     let token_admin = Address::random(&env);
 
     let (token_a, token_a_admin) = create_token_contract(&env, &token_admin);
