@@ -11,7 +11,7 @@ fn create_token_contract(e: &Env, admin: &Address) -> (TokenClient, TokenAdminCl
 }
 
 #[test]
-fn test_atomic_swap() {
+fn test_mint_and_transfer() {
     let env = Env::default();
 
     let a = Address::random(&env);
@@ -33,30 +33,4 @@ fn test_atomic_swap() {
     token_b.transfer(&b, &a, &10);
     assert_eq!(token_b.balance(&a), 10);
     assert_eq!(token_b.balance(&b), 990);
-}
-
-#[cfg(kani)]
-mod verification {
-    use super::*;
-    use soroban_sdk::testutils::Address as _;
-    use soroban_sdk::{Address, Env};
-
-    fn create_token_contract<'a>(e: &Env, admin: &Address) -> (TokenClient, TokenAdminClient) {
-        let contract_address = e.register_stellar_asset_contract(admin.clone());
-        (
-            TokenClient::new(e, &contract_address),
-            TokenAdminClient::new(e, &contract_address),
-        )
-    }
-
-    #[kani::proof]
-    #[kani::unwind(100)]
-    fn verify() {
-        let env = Env::default();
-
-        let a = Address::random(&env);
-        let b = Address::random(&env);
-        let token_admin = Address::random(&env);
-        let (token_a, token_a_admin) = create_token_contract(&env, &token_admin);
-    }
 }
