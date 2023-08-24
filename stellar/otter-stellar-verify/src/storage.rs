@@ -1,15 +1,12 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::fmt::Debug;
 
+use crate::token::MockToken;
 use crate::Address;
 
-use crate::env::Env;
-use crate::token::MockToken;
-
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Storage {
-    env: Env,
-    tokens: BTreeMap<Address, MockToken>,
+    tokens: HashMap<Address, MockToken>,
 }
 
 impl Debug for Storage {
@@ -19,14 +16,6 @@ impl Debug for Storage {
 }
 
 impl Storage {
-    #[inline(always)]
-    pub(crate) fn new(env: &Env) -> Storage {
-        Storage {
-            env: env.clone(),
-            tokens: BTreeMap::new(),
-        }
-    }
-
     pub fn get_token(&self, address: &Address) -> Option<MockToken> {
         self.tokens.get(address).cloned()
     }

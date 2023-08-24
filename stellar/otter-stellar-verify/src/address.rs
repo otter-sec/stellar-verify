@@ -1,14 +1,14 @@
 use std::cmp::Ordering;
 
-use crate::types::ScAddress;
-#[cfg(any(kani, feature = "kani"))]
-use crate::Env;
-use crate::Val;
+use crate::{
+    env::internal,
+    random::random,
+    types::{Hash, ScAddress},
+    Env, IntoVal,
+};
 
-#[cfg(any(kani, feature = "kani"))]
-use crate::types::Hash;
-
-#[derive(Debug, Clone)]
+#[allow(clippy::derived_hash_with_manual_eq)]
+#[derive(Debug, Hash, Clone)]
 pub struct Address {
     pub obj: ScAddress,
 }
@@ -34,15 +34,34 @@ impl PartialOrd for Address {
 }
 
 impl Address {
-    pub fn require_auth_for_args(&self, _args: Vec<Val>) {
+    pub fn require_auth_for_args(&self, _args: (Address, Address, i128, i128)) {
         todo!()
     }
     pub fn require_auth(&self) {}
 }
 
+#[cfg(not(any(kani, feature = "kani")))]
+impl Address {
+    pub fn random(_env: &Env) -> Self {
+        let result: [u8; 32] = random();
+        let hash: Hash = Hash(result);
+        Address {
+            obj: ScAddress::Contract(hash),
+        }
+    }
+}
+
+impl<E: internal::Env> IntoVal<E, (Address, Address, i128, i128)>
+    for (Address, Address, i128, i128)
+{
+    fn into_val(self, _e: &E) -> (Address, Address, i128, i128) {
+        self.clone()
+    }
+}
+
 #[cfg(any(kani, feature = "kani"))]
 impl Address {
-    pub fn random(env: &Env) -> Self {
+    pub fn random(_env: &Env) -> Self {
         let hash: Hash = kani::any();
         Address {
             obj: ScAddress::Contract(hash),

@@ -1,50 +1,34 @@
-use std::rc::Rc;
-
-use self::internal::xdr::{
-    AccountEntry, AccountEntryExt, AlphaNum4, Asset, AssetCode4, ContractExecutable,
-    ContractIdPreimage, CreateContractArgs, HostFunction, LedgerEntry, LedgerEntryData,
-    LedgerEntryExt, LedgerKey, LedgerKeyAccount, SequenceNumber, Thresholds,
-};
+use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     address::Address,
-    crypto::Crypto,
-    events::Events,
-    ledger::Ledger,
-    random::random,
-    soroban_ledger_snapshot::LedgerSnapshot,
     storage::Storage,
-    types::{AccountId, Hash, PublicKey, ScAddress, Uint256, VecM},
+    token::MockToken,
+    types::{Hash, ScAddress},
 };
 
 pub mod internal {
-    pub use crate::soroban_env_host::*;
-
-    pub type EnvImpl = Host;
-    pub type MaybeEnvImpl = Option<Host>;
 
     pub trait Env {}
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Env {
-    env_impl: internal::EnvImpl,
-    _snapshot: Option<Rc<LedgerSnapshot>>,
+    pub storage: Rc<RefCell<Storage>>,
 }
+
 impl Default for Env {
     fn default() -> Self {
         Self::default_with_testutils()
     }
 }
-impl Env {
-    pub fn host(&self) -> &internal::Host {
-        &self.env_impl
-    }
 
+impl internal::Env for Env {}
+
+impl Env {
     fn default_with_testutils() -> Env {
         Env {
-            env_impl: internal::EnvImpl::default(),
-            _snapshot: None,
+            storage: Rc::new(RefCell::new(Storage::default())),
         }
     }
 
@@ -54,43 +38,21 @@ impl Env {
         }
     }
 
-    #[inline(always)]
-    pub fn storage(&self) -> Storage {
-        Storage::new(self)
-    }
-
-    #[inline(always)]
-    pub fn events(&self) -> Events {
-        Events::new(self)
-    }
-
-    #[inline(always)]
-    pub fn ledger(&self) -> Ledger {
-        Ledger::new(self)
-    }
-
-    #[inline(always)]
-    pub fn crypto(&self) -> Crypto {
-        Crypto::new(self)
-    }
-
     pub fn register_stellar_asset_contract(&self, admin: Address) -> Address {
-        let contract_address = Address::random();
-        let mut storage = self.storage();
-
-        let mut token = MockToken::new(
+        let contract_address = Address::random(self);
+        let token = MockToken::new(
             contract_address.clone(),
             "Stellar Lumens".to_string(),
             "XLM".to_string(),
             7,
-            100_000_000_000_000,
+            100_000_000_000,
             admin,
         );
-        storage.set_token(token);
+        self.storage.borrow_mut().set_token(token);
         contract_address
     }
 }
 
 pub trait IntoVal<E: internal::Env, T> {
-    fn into_val(&self, e: &E) -> T;
+    fn into_val(self, e: &E) -> T;
 }

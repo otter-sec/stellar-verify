@@ -1,13 +1,14 @@
 use std::collections::HashMap;
 
-use crate::{address::Address, env::Env, storage};
+use crate::{address::Address, env::Env};
 
-#[derive(PartialEq, Eq, Hash)]
-struct AddressPair {
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+pub struct AddressPair {
     from: Address,
     to: Address,
 }
 
+#[derive(Clone, Debug)]
 pub struct MockToken {
     pub address: Address,
     pub name: String,
@@ -43,95 +44,86 @@ impl MockToken {
 
 #[derive(Clone, Debug)]
 pub struct Client {
+    pub env: Env,
     pub address: Address,
-    pub token: MockToken,
 }
 
 impl Client {
     pub fn new(env: &Env, address: &Address) -> Self {
         Self {
+            env: env.clone(),
             address: address.clone(),
-            token: storage::get_token(address),
         }
     }
 
-    pub fn approve(&self, spender: &Address, amount: &i128) {
-        let pair = AddressPair {
-            from: self.address.clone(),
-            to: spender.clone(),
-        };
-        let prev_allowance = self.token.allowances.get(&pair).unwrap_or(&0);
-        self.token.allowances.insert(pair, prev_allowance + amount);
-        storage.set_token(self.token.clone());
+    pub fn get_self_token(&self) -> Option<MockToken> {
+        self.env.storage.borrow().get_token(&self.address)
     }
 
-    pub fn allowance(&self, spender: &Address) -> i128 {
-        let pair = AddressPair {
-            from: self.address.clone(),
-            to: spender.clone(),
-        };
-        *self.token.allowances.get(&pair).unwrap_or(&0)
+    pub fn balance(&self, address: &Address) -> i128 {
+        let token = self.get_self_token().expect("Asset not found");
+        *token.balances.get(address).unwrap_or(&0)
     }
 
-    pub fn balance(&self) -> i128 {
-        *self.token.balances.get(&self.address).unwrap_or(&0)
-    }
-
-    pub fn spendable_balance(&self) -> i128 {
-        self.balance()
-    }
-
-    pub fn transfer(&self, from: Address, to: &Address, amount: &i128) {
-        let prev_bal_to = self.token.balances.get(to).unwrap_or(&0);
-        let prev_bal_from = self.token.balances.get(&self.address).unwrap_or(&0);
-        assert!(prev_bal_from >= amount);
-        self.token.balances.insert(to, prev_bal + amount);
-        self.token.balances.insert(from, prev_bal_from - amount);
-        storage.set_token(self.token);
+    pub fn transfer(&self, from: &Address, to: &Address, amount: &i128) {
+        let mut token = self.get_self_token().expect("Asset not found");
+        let prev_bal_from = *token.balances.get(from).unwrap_or(&0);
+        assert!(prev_bal_from >= *amount);
+        let prev_bal_to = *token.balances.get(to).unwrap_or(&0);
+        token.balances.insert(from.clone(), prev_bal_from - amount);
+        token.balances.insert(to.clone(), prev_bal_to + amount);
+        self.env.storage.borrow_mut().set_token(token.clone());
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct AdminClient {
+    pub env: Env,
     pub address: Address,
-    pub token: MockToken,
 }
 
 impl AdminClient {
     pub fn new(env: &Env, address: &Address) -> Self {
         Self {
+            env: env.clone(),
             address: address.clone(),
-            token: storage::get_token(address),
         }
     }
 
+    pub fn get_self_token(&self) -> Option<MockToken> {
+        self.env.storage.borrow().get_token(&self.address)
+    }
+
+    pub fn update_self_token(&self, token: &MockToken) {
+        self.env.storage.borrow_mut().set_token(token.clone());
+    }
+
+    pub fn balance(&self, address: &Address) -> i128 {
+        let token = self.get_self_token().expect("Asset not found");
+        *token.balances.get(address).unwrap_or(&0)
+    }
+
     pub fn mint(&self, to: &Address, amount: &i128) {
-        let prev_bal = self.token.balances.get(to).unwrap_or(&0);
-        self.token.balances.insert(to.clone(), prev_bal + amount);
-        storage.set_token(self.token);
+        let mut token = self.get_self_token().expect("Asset not found");
+        let prev_bal = token.balances.get(to).unwrap_or(&0);
+        println!("prev_bal: {:?}", prev_bal);
+        token.balances.insert(to.clone(), prev_bal + amount);
+        let new_bal = token.balances.get(to).unwrap_or(&0);
+        println!("new_bal: {:?}", new_bal);
+        self.update_self_token(&token);
+        let token = self.get_self_token().expect("Asset not found");
+        let new_bal = token.balances.get(to).unwrap_or(&0);
+        println!("new_baler: {:?}", new_bal);
     }
 
     pub fn admin(&self) -> Address {
-        self.token.admin.clone()
+        let token = self.get_self_token().expect("Asset not found");
+        token.admin.clone()
     }
 
-    pub fn set_admin(&mut self, new_admin: &Address) {
-        self.token.admin = new_admin;
-        storage.set_token(self.token);
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct BytesObject {}
-
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct StringObject {}
-
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct SymbolObject {}
-
-impl ToString for SymbolObject {
-    fn to_string(&self) -> String {
-        self.to_string()
+    pub fn set_admin(&self, new_admin: &Address) {
+        let mut token = self.get_self_token().expect("Asset not found");
+        token.admin = new_admin.clone();
+        self.env.storage.borrow_mut().set_token(token.clone());
     }
 }
