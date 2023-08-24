@@ -1164,3 +1164,89 @@ pub enum ScErrorCode {
     UnexpectedType = 8,
     UnexpectedSize = 9,
 }
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(
+    all(feature = "serde", feature = "alloc"),
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
+#[allow(clippy::large_enum_variant)]
+pub enum HashIdPreimage {
+    OpId(HashIdPreimageOperationId),
+    PoolRevokeOpId(HashIdPreimageRevokeId),
+    ContractId(HashIdPreimageContractId),
+    SorobanAuthorization(HashIdPreimageSorobanAuthorization),
+}
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(
+    all(feature = "serde", feature = "alloc"),
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
+pub struct HashIdPreimageOperationId {
+    pub source_account: AccountId,
+    pub seq_num: SequenceNumber,
+    pub op_num: u32,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(
+    all(feature = "serde", feature = "alloc"),
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
+pub struct HashIdPreimageRevokeId {
+    pub source_account: AccountId,
+    pub seq_num: SequenceNumber,
+    pub op_num: u32,
+    pub liquidity_pool_id: PoolId,
+    pub asset: Asset,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(
+    all(feature = "serde", feature = "alloc"),
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
+pub struct HashIdPreimageContractId {
+    pub network_id: Hash,
+    pub contract_id_preimage: ContractIdPreimage,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(
+    all(feature = "serde", feature = "alloc"),
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
+pub struct HashIdPreimageSorobanAuthorization {
+    pub network_id: Hash,
+    pub nonce: i64,
+    pub signature_expiration_ledger: u32,
+    pub invocation: SorobanAuthorizedInvocation,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(
+    all(feature = "serde", feature = "alloc"),
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
+pub struct SorobanAuthorizedInvocation {
+    pub function: SorobanAuthorizedFunction,
+    pub sub_invocations: VecM<SorobanAuthorizedInvocation>,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(
+    all(feature = "serde", feature = "alloc"),
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
+#[allow(clippy::large_enum_variant)]
+pub enum SorobanAuthorizedFunction {
+    ContractFn(InvokeContractArgs),
+    CreateContractHostFn(CreateContractArgs),
+}

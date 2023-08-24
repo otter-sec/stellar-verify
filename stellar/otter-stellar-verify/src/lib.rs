@@ -9,6 +9,7 @@ pub mod soroban_env_common;
 pub mod soroban_env_host;
 pub mod soroban_ledger_snapshot;
 pub mod storage;
+pub mod string;
 pub mod token;
 pub mod types;
 
@@ -17,6 +18,7 @@ pub use {
     env::{Env, IntoVal},
     soroban_env_common::val::Val,
     stellar_sdk_macros::{contract, contractimpl},
+    string::String,
 };
 
 #[cfg(any(kani, feature = "kani"))]

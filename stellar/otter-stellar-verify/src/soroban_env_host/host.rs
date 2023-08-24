@@ -1,11 +1,14 @@
 use std::{cell::RefCell, rc::Rc};
 
+use sha2::{Digest, Sha256, Sha512};
+
 use crate::soroban_env_common::StorageType;
-use crate::types::{ContractExecutable, Hash, ScContractInstance, ScErrorCode};
+use crate::types::{ContractExecutable, Hash, ScAddress, ScContractInstance, ScErrorCode, ScVal};
+use crate::Val;
 
 use super::error::HostError;
 use super::storage::Storage;
-use super::xdr::{LedgerEntry, LedgerKey, ScErrorType};
+use super::xdr::{ContractDataDurability, CreateContractArgs, LedgerEntry, LedgerKey, ScErrorType};
 
 #[derive(Debug, Clone, Default)]
 pub struct LedgerInfo {
@@ -21,6 +24,7 @@ pub struct LedgerInfo {
 
 #[derive(Clone, Default)]
 pub(crate) struct HostImpl {
+    ledger: RefCell<Option<LedgerInfo>>,
     storage: RefCell<Storage>,
 }
 
@@ -44,7 +48,7 @@ impl Host {
     }
 
     pub fn get_ledger_info(&self) -> LedgerInfo {
-        LedgerInfo::default()
+        self.0.ledger.borrow().clone().unwrap()
     }
 
     pub fn with_mut_storage<F, R>(&self, f: F) -> R
@@ -52,6 +56,10 @@ impl Host {
         F: FnOnce(&mut Storage) -> R,
     {
         f(&mut self.0.storage.borrow_mut())
+    }
+
+    pub fn get_ledger_network_id(&self) -> Result<[u8; 32], HostError> {
+        Ok(self.get_ledger_info().network_id)
     }
 
     pub fn add_ledger_entry(
@@ -65,5 +73,59 @@ impl Host {
 
     pub fn has(&self, key: &LedgerKey) -> bool {
         self.0.storage.borrow().has(key)
+    }
+
+    pub(crate) fn storage_key_from_scval(
+        &self,
+        key: ScVal,
+        durability: ContractDataDurability,
+    ) -> Result<Rc<LedgerKey>, HostError> {
+        todo!("Impl storage_key_from_scval")
+    }
+
+    pub fn storage_key_from_rawval(
+        &self,
+        k: Val,
+        durability: ContractDataDurability,
+    ) -> Result<Rc<LedgerKey>, HostError> {
+        // let sc_val = ScVal::from(k);
+        // self.storage_key_from_scval(sc_val, durability)
+        todo!()
+    }
+
+    fn has_contract_data(&self, k: Val, t: StorageType) -> Result<bool, HostError> {
+        todo!("Impl has_contract_data")
+    }
+
+    pub fn create_contract_internal(
+        &self,
+        deployer: Option<ScAddress>,
+        args: CreateContractArgs,
+    ) -> Result<ScAddress, HostError> {
+        if deployer.is_some() {
+            todo!("Impl if deployer is some")
+        }
+        let res = self.create_contract_with_optional_auth(deployer, args);
+        res
+    }
+
+    fn metered_hash_xdr(&self, xdr: &[u8]) -> Result<[u8; 32], HostError> {
+        let mut hasher = Sha256::new();
+        hasher.update(xdr);
+        let hash = hasher.finalize();
+        Ok(hash.into())
+    }
+
+    fn create_contract_with_optional_auth(
+        &self,
+        deployer: Option<ScAddress>,
+        args: CreateContractArgs,
+    ) -> Result<ScAddress, HostError> {
+        if deployer.is_some() {
+            todo!("Impl if deployer is some")
+        }
+
+        let id_preimage = self.get_full_contract_id_preimage(args.contract_id_preimage)?;
+        todo!("Impl create_contract_with_optional_auth");
     }
 }

@@ -1,5 +1,6 @@
 use num_derive::FromPrimitive;
 
+pub mod convert;
 pub mod error;
 pub mod num;
 pub mod val;

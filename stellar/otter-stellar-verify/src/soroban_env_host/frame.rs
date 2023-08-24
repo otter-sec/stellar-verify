@@ -1,14 +1,8 @@
-use crate::{
-    types::{Hash, ScAddress, ScVal},
-    Val,
-};
+use crate::{types::ScVal, Val};
 
 use super::{
     error::HostError,
-    xdr::{
-        ContractExecutable, CreateContractArgs, HostFunction, HostFunctionType, ScErrorCode,
-        ScErrorType,
-    },
+    xdr::{HostFunction, HostFunctionType},
     Host,
 };
 
@@ -29,17 +23,16 @@ pub(crate) enum Frame {
 
 impl Host {
     fn invoke_function_raw(&self, hf: HostFunction) -> Result<Val, HostError> {
-        let hf_type = hf.discriminant();
-        match hf {
-            HostFunction::CreateContract(args) => {
-                todo!("Host::invoke_function_raw: CreateContract")
-            }
-            _ => {}
-        }
+        // let hf_type = hf.discriminant();
+        // match hf {
+        //     HostFunction::CreateContract(args) => self.create_contract_internal(None, args),
+        //     _ => todo!("Implement invoke_function_raw for {:?}", hf_type),
+        // }
         Ok(Val::default())
     }
 
     pub fn invoke_function(&self, hf: HostFunction) -> Result<ScVal, HostError> {
-        todo!();
+        let rv = self.invoke_function_raw(hf)?;
+        todo!("Convert Val to ScVal")
     }
 }

@@ -1,8 +1,9 @@
 use std::cmp::Ordering;
 
-use crate::soroban_env_common::val::Val;
 use crate::types::ScAddress;
+#[cfg(any(kani, feature = "kani"))]
 use crate::Env;
+use crate::Val;
 
 #[cfg(any(kani, feature = "kani"))]
 use crate::types::Hash;
@@ -36,6 +37,7 @@ impl Address {
     pub fn require_auth_for_args(&self, _args: Vec<Val>) {
         todo!()
     }
+    pub fn require_auth(&self) {}
 }
 
 #[cfg(any(kani, feature = "kani"))]

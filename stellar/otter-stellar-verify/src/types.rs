@@ -25,8 +25,7 @@ pub enum ScVal {
 }
 
 #[derive(Clone, Hash, Debug, PartialEq, Eq, PartialOrd, Ord)]
-//#[cfg_attr(kani, derive(kani::Arbitrary))]
-
+#[cfg_attr(kani, derive(kani::Arbitrary))]
 pub struct Uint256(pub [u8; 32]);
 
 impl Uint256 {
@@ -62,12 +61,12 @@ impl Default for Uint256 {
 pub struct Hash(pub [u8; 32]);
 
 #[derive(Clone, Hash, Debug, PartialEq, Eq, PartialOrd, Ord, Default)]
-//#[cfg_attr(kani, derive(kani::Arbitrary))]
+#[cfg_attr(kani, derive(kani::Arbitrary))]
 
 pub struct PublicKey(pub Uint256);
 
 #[derive(Clone, Hash, Debug, PartialEq, Eq, PartialOrd, Ord)]
-//#[cfg_attr(kani, derive(kani::Arbitrary))]
+#[cfg_attr(kani, derive(kani::Arbitrary))]
 
 pub struct AccountId(pub PublicKey);
 
@@ -78,7 +77,7 @@ pub enum ScAddress {
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-//#[cfg_attr(kani, derive(kani::Arbitrary))]
+#[cfg_attr(kani, derive(kani::Arbitrary))]
 
 pub struct UInt128Parts {
     pub hi: u64,
@@ -86,7 +85,7 @@ pub struct UInt128Parts {
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-//#[cfg_attr(kani, derive(kani::Arbitrary))]
+#[cfg_attr(kani, derive(kani::Arbitrary))]
 
 pub struct Int128Parts {
     pub hi: i64,
@@ -94,7 +93,7 @@ pub struct Int128Parts {
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-//#[cfg_attr(kani, derive(kani::Arbitrary))]
+#[cfg_attr(kani, derive(kani::Arbitrary))]
 
 pub struct UInt256Parts {
     pub hi_hi: u64,
@@ -104,7 +103,7 @@ pub struct UInt256Parts {
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-//#[cfg_attr(kani, derive(kani::Arbitrary))]
+#[cfg_attr(kani, derive(kani::Arbitrary))]
 
 pub struct Int256Parts {
     pub hi_hi: i64,
@@ -114,12 +113,12 @@ pub struct Int256Parts {
 }
 
 #[derive(Debug, Clone, Hash, Ord, PartialOrd, Eq, PartialEq)]
-//#[cfg_attr(kani, derive(kani::Arbitrary))]
+#[cfg_attr(kani, derive(kani::Arbitrary))]
 
 pub struct Duration(pub u64);
 
 #[derive(Debug, Clone, Hash, Ord, PartialOrd, Eq, PartialEq)]
-//#[cfg_attr(kani, derive(kani::Arbitrary))]
+#[cfg_attr(kani, derive(kani::Arbitrary))]
 
 pub struct TimePoint(pub u64);
 
@@ -219,7 +218,7 @@ pub enum ScErrorCode {
 }
 
 #[derive(Debug, Clone, Hash, Ord, PartialOrd, Eq, PartialEq)]
-//#[cfg_attr(kani, derive(kani::Arbitrary))]
+#[cfg_attr(kani, derive(kani::Arbitrary))]
 
 pub struct ScNonceKey {
     pub nonce: i64,
