@@ -106,14 +106,8 @@ impl AdminClient {
     pub fn mint(&self, to: &Address, amount: &i128) {
         let mut token = self.get_self_token().expect("Asset not found");
         let prev_bal = token.balances.get(to).unwrap_or(&0);
-        println!("prev_bal: {:?}", prev_bal);
         token.balances.insert(to.clone(), prev_bal + amount);
-        let new_bal = token.balances.get(to).unwrap_or(&0);
-        println!("new_bal: {:?}", new_bal);
         self.update_self_token(&token);
-        let token = self.get_self_token().expect("Asset not found");
-        let new_bal = token.balances.get(to).unwrap_or(&0);
-        println!("new_baler: {:?}", new_bal);
     }
 
     pub fn admin(&self) -> Address {
