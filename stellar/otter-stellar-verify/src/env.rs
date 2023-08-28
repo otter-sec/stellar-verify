@@ -20,6 +20,8 @@ impl Default for Env {
 
 impl internal::Env for Env {}
 
+pub static mut CURRENT_CONTRACT: u8 = 0;
+
 impl Env {
     fn default_with_testutils() -> Env {
         Env {
@@ -28,7 +30,11 @@ impl Env {
     }
 
     pub fn current_contract_address(&self) -> Address {
-        Address::new(self)
+        unsafe {
+            Address {
+                val: CURRENT_CONTRACT,
+            }
+        }
     }
 
     pub fn mock_all_auths(&self) {}
@@ -44,6 +50,14 @@ impl Env {
             admin,
         );
         self.storage.borrow_mut().insert_token(token);
+        contract_address
+    }
+
+    pub fn register_contract(&self, _contract_id: Option<Address>) -> Address {
+        let contract_address = Address::new(self);
+        unsafe {
+            CURRENT_CONTRACT = contract_address.val;
+        }
         contract_address
     }
 }

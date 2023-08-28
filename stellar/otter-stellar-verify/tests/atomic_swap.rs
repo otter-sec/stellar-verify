@@ -105,6 +105,7 @@ mod test {
         token_a_admin.mint(&a, &1000);
         token_b_admin.mint(&b, &5000);
 
+        let _ = env.register_contract(None);
         AtomicSwapContract::swap(
             env.clone(),
             a,
@@ -127,6 +128,8 @@ mod test {
 
 #[cfg(kani)]
 mod verification {
+    use std::println;
+
     use super::*;
     use otter_stellar_verify::{Address, Env};
     use token::AdminClient as TokenAdminClient;
@@ -148,8 +151,6 @@ mod verification {
 
         let a = Address::new(&env);
         let b = Address::new(&env);
-        kani::assume(a != b);
-        assert!(a != b);
         let token_admin = Address::new(&env);
 
         let (token_a, token_a_admin) = create_token_contract(&env, &token_admin);
@@ -168,6 +169,7 @@ mod verification {
         kani::assume(amount_b > min_b_for_a);
         kani::assume(amount_a > min_a_for_b);
 
+        let contract = env.register_contract(None);
         // Call the contract.
         AtomicSwapContract::swap(
             env.clone(),
