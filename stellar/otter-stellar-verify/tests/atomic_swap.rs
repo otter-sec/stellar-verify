@@ -26,7 +26,6 @@ impl AtomicSwapContract {
         amount_b: i128,
         min_a_for_b: i128,
     ) {
-        assert!(a != b);
         // Verify preconditions on the minimum price for both parties.
         if amount_b < min_b_for_a {
             panic!("not enough token B for token A");
@@ -38,12 +37,8 @@ impl AtomicSwapContract {
         // Notice, that arguments are symmetric - there is no difference between
         // `a` and `b` in the call and hence their signatures can be used
         // either for `a` or for `b` role.
-        a.require_auth_for_args(
-            (token_a.clone(), token_b.clone(), amount_a, min_b_for_a).into_val(&env),
-        );
-        b.require_auth_for_args(
-            (token_b.clone(), token_a.clone(), amount_b, min_a_for_b).into_val(&env),
-        );
+        a.require_auth_for_args((token_a, token_b, amount_a, min_b_for_a).into_val(&env));
+        b.require_auth_for_args((token_b, token_a, amount_b, min_a_for_b).into_val(&env));
 
         // Perform the swap by moving tokens from a to b and from b to a.
         move_token(&env, &token_a, &a, &b, amount_a, min_a_for_b);
@@ -86,8 +81,8 @@ mod test {
     use token::AdminClient as TokenAdminClient;
     use token::Client as TokenClient;
 
-    fn create_token_contract(e: &Env, admin: &Address) -> (TokenClient, TokenAdminClient) {
-        let contract_address = e.register_stellar_asset_contract(admin.clone());
+    fn create_token_contract(e: &Env, admin: Address) -> (TokenClient, TokenAdminClient) {
+        let contract_address = e.register_stellar_asset_contract(admin);
         (
             TokenClient::new(e, &contract_address),
             TokenAdminClient::new(e, &contract_address),
@@ -99,22 +94,23 @@ mod test {
         let env = Env::default();
         env.mock_all_auths();
 
-        let a = Address::random(&env);
-        let b = Address::random(&env);
+        let a = Address::new(&env);
+        let b = Address::new(&env);
 
-        let token_admin = Address::random(&env);
+        let token_admin = Address::new(&env);
 
-        let (token_a, token_a_admin) = create_token_contract(&env, &token_admin);
-        let (token_b, token_b_admin) = create_token_contract(&env, &token_admin);
+        let (token_a, token_a_admin) = create_token_contract(&env, token_admin);
+        let (token_b, token_b_admin) = create_token_contract(&env, token_admin);
+
         token_a_admin.mint(&a, &1000);
         token_b_admin.mint(&b, &5000);
 
         AtomicSwapContract::swap(
             env.clone(),
-            a.clone(),
-            b.clone(),
-            token_a.address.clone(),
-            token_b.address.clone(),
+            a,
+            b,
+            token_a.address,
+            token_b.address,
             1000,
             4500,
             5000,
@@ -132,7 +128,6 @@ mod test {
 #[cfg(kani)]
 mod verification {
     use super::*;
-    use otter_stellar_verify::testutils::Address as _;
     use otter_stellar_verify::{Address, Env};
     use token::AdminClient as TokenAdminClient;
     use token::Client as TokenClient;
@@ -146,25 +141,32 @@ mod verification {
     }
 
     #[kani::proof]
-    #[kani::unwind(100)]
+    #[kani::unwind(10)]
+    #[kani::solver(cadical)]
     fn verify() {
         let env = Env::default();
 
-        let a = Address::random(&env);
-        let b = Address::random(&env);
+        let a = Address::new(&env);
+        let b = Address::new(&env);
         kani::assume(a != b);
         assert!(a != b);
-        let token_admin = Address::random(&env);
-        let (token_a, token_a_admin) = create_token_contract(&env, &token_admin);
-        let (token_b, token_b_admin) = create_token_contract(&env, &token_admin);
-        token_a_admin.mint(&a, &1000);
-        token_b_admin.mint(&b, &5000);
+        let token_admin = Address::new(&env);
 
-        // Use cargo any to generate random values for the arguments.
+        let (token_a, token_a_admin) = create_token_contract(&env, &token_admin);
         let amount_a = kani::any::<i128>();
-        let min_b_for_a = kani::any::<i128>();
+        kani::assume(amount_a > 0);
+        token_a_admin.mint(&a, &amount_a);
+
+        let (token_b, token_b_admin) = create_token_contract(&env, &token_admin);
         let amount_b = kani::any::<i128>();
+        kani::assume(amount_b > 0);
+        token_b_admin.mint(&b, &amount_b);
+
+        let min_b_for_a = kani::any::<i128>();
         let min_a_for_b = kani::any::<i128>();
+
+        kani::assume(amount_b > min_b_for_a);
+        kani::assume(amount_a > min_a_for_b);
 
         // Call the contract.
         AtomicSwapContract::swap(

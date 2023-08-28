@@ -1,11 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{
-    address::Address,
-    storage::Storage,
-    token::MockToken,
-    types::{Hash, ScAddress},
-};
+use crate::{address::Address, storage::Storage, token::MockToken};
 
 pub mod internal {
 
@@ -33,24 +28,22 @@ impl Env {
     }
 
     pub fn current_contract_address(&self) -> Address {
-        Address {
-            obj: ScAddress::Contract(Hash::default()),
-        }
+        Address::new(self)
     }
 
     pub fn mock_all_auths(&self) {}
 
     pub fn register_stellar_asset_contract(&self, admin: Address) -> Address {
-        let contract_address = Address::random(self);
+        let contract_address = Address::new(self);
         let token = MockToken::new(
-            contract_address.clone(),
+            contract_address,
             "Stellar Lumens".to_string(),
             "XLM".to_string(),
             7,
             100_000_000_000,
             admin,
         );
-        self.storage.borrow_mut().set_token(token);
+        self.storage.borrow_mut().insert_token(token);
         contract_address
     }
 }

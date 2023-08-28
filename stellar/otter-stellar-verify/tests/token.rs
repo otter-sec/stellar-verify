@@ -2,8 +2,8 @@ use otter_stellar_verify::{token, Address, Env};
 use token::AdminClient as TokenAdminClient;
 use token::Client as TokenClient;
 
-fn create_token_contract(e: &Env, admin: &Address) -> (TokenClient, TokenAdminClient) {
-    let contract_address = e.register_stellar_asset_contract(admin.clone());
+fn create_token_contract(e: &Env, admin: Address) -> (TokenClient, TokenAdminClient) {
+    let contract_address = e.register_stellar_asset_contract(admin);
     (
         TokenClient::new(e, &contract_address),
         TokenAdminClient::new(e, &contract_address),
@@ -14,13 +14,13 @@ fn create_token_contract(e: &Env, admin: &Address) -> (TokenClient, TokenAdminCl
 fn test_mint_and_transfer() {
     let env = Env::default();
 
-    let a = Address::random(&env);
-    let b = Address::random(&env);
+    let a = Address::new(&env);
+    let b = Address::new(&env);
     assert!(a != b);
-    let token_admin = Address::random(&env);
+    let token_admin = Address::new(&env);
 
-    let (token_a, token_a_admin) = create_token_contract(&env, &token_admin);
-    let (token_b, token_b_admin) = create_token_contract(&env, &token_admin);
+    let (token_a, token_a_admin) = create_token_contract(&env, token_admin);
+    let (token_b, token_b_admin) = create_token_contract(&env, token_admin);
 
     token_a_admin.mint(&a, &1000);
     assert_eq!(token_a.balance(&a), 1000);

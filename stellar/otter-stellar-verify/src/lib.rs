@@ -1,10 +1,8 @@
 pub mod address;
 pub mod env;
-pub mod random;
 pub mod storage;
 pub mod testutils;
 pub mod token;
-pub mod types;
 
 pub use {
     address::Address,
@@ -18,7 +16,9 @@ mod verification {
 
     #[kani::proof]
     pub fn check_address() {
-        let _address: address::Address = kani::any();
-        let _address2: address::Address = kani::any();
+        let env = env::Env::default();
+        let a: address::Address = Address::new(&env);
+        let b: address::Address = Address::new(&env);
+        assert!(a != b);
     }
 }

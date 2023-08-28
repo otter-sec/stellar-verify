@@ -1,5 +1,3 @@
-use std::collections::BTreeMap;
-
 use crate::{address::Address, env::Env};
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
@@ -15,7 +13,7 @@ pub struct MockToken {
     pub symbol: String,
     pub decimals: u8,
     pub total_supply: i128,
-    pub balances: BTreeMap<Address, i128>,
+    pub balances: Vec<i128>,
     pub admin: Address,
 }
 
@@ -34,7 +32,7 @@ impl MockToken {
             symbol,
             decimals,
             total_supply,
-            balances: BTreeMap::new(),
+            balances: vec![0; 100],
             admin,
         }
     }
@@ -50,27 +48,40 @@ impl Client {
     pub fn new(env: &Env, address: &Address) -> Self {
         Self {
             env: env.clone(),
-            address: address.clone(),
+            address: *address,
         }
     }
 
-    pub fn get_self_token(&self) -> Option<MockToken> {
-        self.env.storage.borrow().get_token(&self.address)
+    pub fn get_self_token(&self) -> MockToken {
+        self.env
+            .storage
+            .borrow()
+            .get_token(&self.address)
+            .expect("Token not found")
     }
 
     pub fn balance(&self, address: &Address) -> i128 {
-        let token = self.get_self_token().expect("Asset not found");
-        *token.balances.get(address).unwrap_or(&0)
+        let token = self.get_self_token();
+        token.balances[address.val as usize]
     }
 
     pub fn transfer(&self, from: &Address, to: &Address, amount: &i128) {
-        let mut token = self.get_self_token().expect("Asset not found");
-        let prev_bal_from = *token.balances.get(from).unwrap_or(&0);
-        assert!(prev_bal_from >= *amount);
-        let prev_bal_to = *token.balances.get(to).unwrap_or(&0);
-        token.balances.insert(from.clone(), prev_bal_from - amount);
-        token.balances.insert(to.clone(), prev_bal_to + amount);
-        self.env.storage.borrow_mut().set_token(token.clone());
+        let mut token = self.get_self_token();
+        let prev_bal_from = self.balance(from);
+
+        assert!(prev_bal_from >= *amount, "Insufficient balance");
+
+        let prev_bal_to = self.balance(to);
+
+        let new_bal_from = prev_bal_from
+            .checked_sub(*amount)
+            .expect("Subtraction overflow");
+        let new_bal_to = prev_bal_to.checked_add(*amount).expect("Addition overflow");
+
+        token.balances[from.val as usize] = new_bal_from;
+        token.balances[to.val as usize] = new_bal_to;
+
+        self.env.storage.borrow_mut().update_token(token.clone());
     }
 }
 
@@ -84,38 +95,47 @@ impl AdminClient {
     pub fn new(env: &Env, address: &Address) -> Self {
         Self {
             env: env.clone(),
-            address: address.clone(),
+            address: *address,
         }
     }
 
-    pub fn get_self_token(&self) -> Option<MockToken> {
-        self.env.storage.borrow().get_token(&self.address)
+    pub fn get_self_token(&self) -> MockToken {
+        self.env
+            .storage
+            .borrow()
+            .get_token(&self.address)
+            .expect("Token not found")
     }
 
     pub fn update_self_token(&self, token: &MockToken) {
-        self.env.storage.borrow_mut().set_token(token.clone());
+        self.env.storage.borrow_mut().update_token(token.clone());
     }
 
     pub fn balance(&self, address: &Address) -> i128 {
-        let token = self.get_self_token().expect("Asset not found");
-        *token.balances.get(address).unwrap_or(&0)
+        let token = self.get_self_token();
+        token.balances[address.val as usize]
     }
 
     pub fn mint(&self, to: &Address, amount: &i128) {
-        let mut token = self.get_self_token().expect("Asset not found");
-        let prev_bal = token.balances.get(to).unwrap_or(&0);
-        token.balances.insert(to.clone(), prev_bal + amount);
+        assert!(*amount > 0, "Minted amount must be positive");
+
+        let mut token = self.get_self_token();
+        let prev_bal = self.balance(to);
+
+        let new_bal = prev_bal.checked_add(*amount).expect("Addition overflow");
+
+        token.balances[to.val as usize] = new_bal;
         self.update_self_token(&token);
     }
 
     pub fn admin(&self) -> Address {
-        let token = self.get_self_token().expect("Asset not found");
-        token.admin.clone()
+        let token = self.get_self_token();
+        token.admin
     }
 
     pub fn set_admin(&self, new_admin: &Address) {
-        let mut token = self.get_self_token().expect("Asset not found");
-        token.admin = new_admin.clone();
-        self.env.storage.borrow_mut().set_token(token.clone());
+        let mut token = self.get_self_token();
+        token.admin = *new_admin;
+        self.env.storage.borrow_mut().update_token(token.clone());
     }
 }

@@ -1,4 +1,3 @@
-use std::collections::BTreeMap;
 use std::fmt::Debug;
 
 use crate::token::MockToken;
@@ -6,7 +5,7 @@ use crate::Address;
 
 #[derive(Clone, Default)]
 pub struct Storage {
-    tokens: BTreeMap<Address, MockToken>,
+    tokens: Vec<MockToken>,
 }
 
 impl Debug for Storage {
@@ -17,10 +16,21 @@ impl Debug for Storage {
 
 impl Storage {
     pub fn get_token(&self, address: &Address) -> Option<MockToken> {
-        self.tokens.get(address).cloned()
+        self.tokens.iter().find(|t| t.address == *address).cloned()
     }
 
-    pub fn set_token(&mut self, token: MockToken) {
-        self.tokens.insert(token.address.clone(), token);
+    pub fn insert_token(&mut self, token: MockToken) {
+        self.tokens.push(token);
+    }
+
+    pub fn update_token(&mut self, token: MockToken) {
+        //get the index of the token
+        let index = self
+            .tokens
+            .iter()
+            .position(|t| t.address == token.address)
+            .unwrap();
+        //replace the token
+        self.tokens[index] = token;
     }
 }
