@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use crate::{address::Address, env::Env};
 
@@ -15,8 +15,7 @@ pub struct MockToken {
     pub symbol: String,
     pub decimals: u8,
     pub total_supply: i128,
-    pub allowances: HashMap<AddressPair, i128>,
-    pub balances: HashMap<Address, i128>,
+    pub balances: BTreeMap<Address, i128>,
     pub admin: Address,
 }
 
@@ -35,8 +34,7 @@ impl MockToken {
             symbol,
             decimals,
             total_supply,
-            allowances: HashMap::new(),
-            balances: HashMap::new(),
+            balances: BTreeMap::new(),
             admin,
         }
     }

@@ -1,8 +1,9 @@
 use std::cmp::Ordering;
 
+#[cfg(not(any(kani, feature = "kani")))]
+use crate::random::random;
 use crate::{
     env::internal,
-    random::random,
     types::{Hash, ScAddress},
     Env, IntoVal,
 };

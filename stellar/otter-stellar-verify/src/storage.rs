@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fmt::Debug;
 
 use crate::token::MockToken;
@@ -6,7 +6,7 @@ use crate::Address;
 
 #[derive(Clone, Default)]
 pub struct Storage {
-    tokens: HashMap<Address, MockToken>,
+    tokens: BTreeMap<Address, MockToken>,
 }
 
 impl Debug for Storage {
