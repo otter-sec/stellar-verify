@@ -128,7 +128,6 @@ mod test {
 
 #[cfg(kani)]
 mod verification {
-    use std::println;
 
     use super::*;
     use otter_stellar_verify::{Address, Env};
