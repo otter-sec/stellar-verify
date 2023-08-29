@@ -1,11 +1,5 @@
 use crate::{address::Address, env::Env};
 
-#[derive(PartialEq, Eq, Hash, Clone, Debug)]
-pub struct AddressPair {
-    from: Address,
-    to: Address,
-}
-
 #[derive(Clone, Debug)]
 pub struct MockToken {
     pub address: Address,
@@ -53,11 +47,12 @@ impl Client {
     }
 
     pub fn get_self_token(&self) -> MockToken {
-        self.env
-            .storage
-            .borrow()
-            .get_token(&self.address)
-            .expect("Token not found")
+        let token = self.env.storage.borrow().get_token(&self.address);
+        if let Some(token) = token {
+            token
+        } else {
+            panic!("Token not found")
+        }
     }
 
     pub fn balance(&self, address: &Address) -> i128 {
@@ -69,14 +64,12 @@ impl Client {
         let mut token = self.get_self_token();
         let prev_bal_from = self.balance(from);
 
-        assert!(prev_bal_from >= *amount, "Insufficient balance");
+        assert!(prev_bal_from >= *amount);
 
         let prev_bal_to = self.balance(to);
 
-        let new_bal_from = prev_bal_from
-            .checked_sub(*amount)
-            .expect("Subtraction overflow");
-        let new_bal_to = prev_bal_to.checked_add(*amount).expect("Addition overflow");
+        let new_bal_from = prev_bal_from.saturating_sub(*amount);
+        let new_bal_to = prev_bal_to.saturating_add(*amount);
 
         token.balances[from.val as usize] = new_bal_from;
         token.balances[to.val as usize] = new_bal_to;
@@ -100,11 +93,12 @@ impl AdminClient {
     }
 
     pub fn get_self_token(&self) -> MockToken {
-        self.env
-            .storage
-            .borrow()
-            .get_token(&self.address)
-            .expect("Token not found")
+        let token = self.env.storage.borrow().get_token(&self.address);
+        if let Some(token) = token {
+            token
+        } else {
+            panic!("Token not found")
+        }
     }
 
     pub fn update_self_token(&self, token: &MockToken) {
@@ -117,12 +111,12 @@ impl AdminClient {
     }
 
     pub fn mint(&self, to: &Address, amount: &i128) {
-        assert!(*amount > 0, "Minted amount must be positive");
+        assert!(*amount > 0);
 
         let mut token = self.get_self_token();
         let prev_bal = self.balance(to);
 
-        let new_bal = prev_bal.checked_add(*amount).expect("Addition overflow");
+        let new_bal = prev_bal.saturating_add(*amount);
 
         token.balances[to.val as usize] = new_bal;
         self.update_self_token(&token);

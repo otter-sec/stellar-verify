@@ -168,7 +168,7 @@ mod verification {
         kani::assume(amount_b > min_b_for_a);
         kani::assume(amount_a > min_a_for_b);
 
-        let contract = env.register_contract(None);
+        let _ = env.register_contract(None);
         // Call the contract.
         AtomicSwapContract::swap(
             env.clone(),
@@ -186,7 +186,7 @@ mod verification {
         assert_eq!(token_a.balance(&a), (amount_a - min_a_for_b));
         assert_eq!(token_a.balance(&b), min_a_for_b);
 
-        assert_eq!(token_b.balance(&a), (amount_b - min_b_for_a));
-        assert_eq!(token_b.balance(&b), min_b_for_a);
+        assert_eq!(token_b.balance(&a), min_b_for_a);
+        assert_eq!(token_b.balance(&b), (amount_b - min_b_for_a));
     }
 }
