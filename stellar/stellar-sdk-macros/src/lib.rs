@@ -102,6 +102,8 @@ pub fn verify(
         pub fn #proof_name() {
             #(#extracted_content)*
 
+            let _ = env.register_contract(None);
+
             kani::assume(
                 #succeeds_if
             );
