@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "stellar/otter-stellar-verify",
     "stellar/stellar-sdk-macros",
+    "stellar/atomic-swap",
 ]
 exclude = [
     "dependencies",
