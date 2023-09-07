@@ -9,7 +9,4 @@ edition = "2021"
 soroban-sdk = { package="otter-stellar-verify", path="../otter-stellar-verify"}
 
 
-[features]
-default = ["kani"]
-kani = ["soroban-sdk/kani"]
 
