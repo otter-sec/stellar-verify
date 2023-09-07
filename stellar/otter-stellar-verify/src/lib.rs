@@ -7,7 +7,7 @@ pub mod token;
 pub use {
     address::Address,
     env::{Env, IntoVal},
-    stellar_sdk_macros::{contract, contractimpl, init, verify},
+    stellar_sdk_macros::{contract, contractimpl, verify},
 };
 
 #[cfg(any(kani, feature = "kani"))]

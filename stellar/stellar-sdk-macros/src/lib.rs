@@ -1,55 +1,69 @@
-use proc_macro::TokenStream;
-use quote::quote;
-use syn::{parse_macro_input, FnArg, ItemFn, Pat, PatIdent, Stmt};
+use proc_macro2::TokenStream;
+use quote::{format_ident, quote, ToTokens};
+use syn::{parse_macro_input, Block, Expr, FnArg, ItemFn, Pat, PatIdent};
 
 const KANI_UNWIND: usize = 10;
 
 #[proc_macro_attribute]
-pub fn contractimpl(_metadata: TokenStream, input: TokenStream) -> TokenStream {
+pub fn contractimpl(
+    _metadata: proc_macro::TokenStream,
+    input: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
     input
 }
 
 #[proc_macro_attribute]
-pub fn contract(_metadata: TokenStream, input: TokenStream) -> TokenStream {
+pub fn contract(
+    _metadata: proc_macro::TokenStream,
+    input: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
     input
 }
 
 #[proc_macro_attribute]
-pub fn verify(_attr: TokenStream, item: TokenStream) -> TokenStream {
-    let input_fn = parse_macro_input!(item as ItemFn);
+pub fn verify(
+    _args: proc_macro::TokenStream,
+    input: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    let input: TokenStream = input.into();
 
-    // Generate the output code
-    let expanded = quote! {
-
-        #input_fn
-
-        fn create_token_contract<'a>(e: &Env, admin: &Address) -> (TokenClient, TokenAdminClient) {
-        let contract_address = e.register_stellar_asset_contract(admin.clone());
-            (
-                TokenClient::new(e, &contract_address),
-                TokenAdminClient::new(e, &contract_address),
-            )
-        }
+    let Ok(mut item_fn) = syn::parse2::<ItemFn>(input) else {
+        panic!("use #[verify] on a function")
     };
 
-    expanded.into()
-}
+    let function_name = item_fn.sig.ident.clone();
 
-#[proc_macro_attribute]
-pub fn init(attr: TokenStream, item: TokenStream) -> TokenStream {
-    // Parse the input as an ItemFn
-    let input_fn = parse_macro_input!(item as ItemFn);
-    // Extract the function name
-    let fn_name = &input_fn.sig.ident;
+    let mut precondition: TokenStream = quote! {
+       let _ = Env::new();
+    };
+    let mut succeeds_if: Option<TokenStream> = None;
+    let mut postcondition: Option<TokenStream> = None;
+    for attr in std::mem::take(&mut item_fn.attrs).into_iter() {
+        if attr.path.is_ident("init") {
+            precondition = attr.parse_args::<Expr>().unwrap().to_token_stream();
+        } else if attr.path.is_ident("succeeds_if") {
+            succeeds_if = Some(attr.parse_args::<Expr>().unwrap().to_token_stream());
+        } else if attr.path.is_ident("post_condition") {
+            postcondition = Some(attr.parse_args::<Expr>().unwrap().to_token_stream());
+        } else {
+            item_fn.attrs.push(attr);
+        }
+    }
 
-    // Parse the custom assignments provided in the attribute
-    let custom_assignments = parse_macro_input!(attr as InitParams);
+    let input: proc_macro::TokenStream = precondition.into();
+    // Parse the input as a Block
+    let block: Block = parse_macro_input!(input);
+
+    // Extract the content of the block
+    let extracted_content = &block.stmts;
+
+    let proof_name = format_ident!("verify_{}", function_name, span = function_name.span());
 
     // Create a Vec to store the input argument names
     let mut arg_names = Vec::new();
 
     // Iterate over the function's arguments and initialize them
-    for input_arg in &input_fn.sig.inputs {
+    for input_arg in &item_fn.sig.inputs {
         if let FnArg::Typed(pat) = input_arg {
             if let Pat::Ident(PatIdent { ident, .. }) = &*pat.pat {
                 let arg_name = ident.clone();
@@ -59,47 +73,48 @@ pub fn init(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     }
 
-    let expanded = quote! {
-
-        #input_fn
-
-
-        #[kani::proof]
-        #[kani::unwind(#KANI_UNWIND)]
-        pub fn verify() {
-
-            #custom_assignments
-
-            let _ = env.register_contract(None);
-
-
-            Self::#fn_name(#(#arg_names),*);
+    let fn_call = if item_fn.sig.receiver().is_some() {
+        quote! {
+            let result = #function_name();
+        }
+    } else {
+        quote! {
+            let result = Self::#function_name(
+                #(#arg_names),*
+            );
         }
     };
 
-    expanded.into()
-}
+    quote! {
 
-struct InitParams {
-    pub assignments: Vec<Stmt>,
-}
-
-impl syn::parse::Parse for InitParams {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let content;
-        syn::braced!(content in input);
-
-        let assignments = content.call(syn::Block::parse_within)?;
-
-        Ok(Self { assignments })
-    }
-}
-
-// Implement ToTokens
-impl quote::ToTokens for InitParams {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        for assignment in &self.assignments {
-            assignment.to_tokens(tokens);
+        fn create_token_contract<'a>(e: &Env, admin: &Address) -> (TokenClient, TokenAdminClient) {
+        let contract_address = e.register_stellar_asset_contract(admin.clone());
+            (
+                TokenClient::new(e, &contract_address),
+                TokenAdminClient::new(e, &contract_address),
+            )
         }
+
+        #item_fn
+
+        #[kani::proof]
+        #[kani::unwind(#KANI_UNWIND)]
+        pub fn #proof_name() {
+            #(#extracted_content)*
+
+            kani::assume(
+                #succeeds_if
+            );
+
+            // Finally: Actually call the function we are trying to verify
+            #fn_call
+
+            // Assert the postconditions apply.
+            assert!((#postcondition));
+
+        }
+
+
     }
+    .into()
 }
