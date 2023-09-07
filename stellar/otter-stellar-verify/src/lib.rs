@@ -1,21 +1,24 @@
 pub mod address;
 pub mod env;
-pub mod types;
+pub mod storage;
+pub mod testutils;
+pub mod token;
 
-pub use stellar_sdk_macros::{contract, contractimpl};
+pub use {
+    address::Address,
+    env::{Env, IntoVal},
+    stellar_sdk_macros::{contract, contractimpl, verify},
+};
 
 #[cfg(any(kani, feature = "kani"))]
 mod verification {
-    use types::Uint256;
-
     use super::*;
 
     #[kani::proof]
     pub fn check_address() {
-        let _address: address::Address = kani::any();
-        let _address2: address::Address = kani::any();
-        let _s: Uint256 = kani::any();
-        let test = Uint256::from_u128(12);
-        assert_eq!(test, Uint256::from_u32(12));
+        let env = env::Env::default();
+        let a: address::Address = Address::new(&env);
+        let b: address::Address = Address::new(&env);
+        assert!(a != b);
     }
 }
