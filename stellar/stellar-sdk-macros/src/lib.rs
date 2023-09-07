@@ -54,7 +54,7 @@ pub fn verify(
     // Parse the input as a Block
     let block: Block = parse_macro_input!(input);
 
-    // Extract the content of the block
+    // Extract the content of the block which inlclude's the variable declarations
     let extracted_content = &block.stmts;
 
     let proof_name = format_ident!("verify_{}", function_name, span = function_name.span());
@@ -62,7 +62,7 @@ pub fn verify(
     // Create a Vec to store the input argument names
     let mut arg_names = Vec::new();
 
-    // Iterate over the function's arguments and initialize them
+    // Iterate over the function's arguments and add their names to the Vec
     for input_arg in &item_fn.sig.inputs {
         if let FnArg::Typed(pat) = input_arg {
             if let Pat::Ident(PatIdent { ident, .. }) = &*pat.pat {
@@ -100,10 +100,14 @@ pub fn verify(
         #[kani::proof]
         #[kani::unwind(#KANI_UNWIND)]
         pub fn #proof_name() {
+
+            // First: Initialize the environment and declare the variables
             #(#extracted_content)*
 
+            // Register the contract
             let _ = env.register_contract(None);
 
+            // Assume the preconditions
             kani::assume(
                 #succeeds_if
             );
