@@ -7,8 +7,19 @@ pub mod token;
 pub use {
     address::Address,
     env::{Env, IntoVal},
-    stellar_sdk_macros::{contract, contractimpl, verify},
+    soroban_env_common::{val::Symbol, FromValEnum, ToValEnum, ValEnum},
+    stellar_sdk_macros::{contract, contractimpl, symbol_short, verify},
 };
+
+#[macro_export]
+macro_rules! log {
+    ($env:expr, $fmt:literal $(,)?) => {
+        // Do nothing.
+    };
+    ($env:expr, $fmt:literal, $($args:expr),* $(,)?) => {
+        // Do nothing.
+    };
+}
 
 #[cfg(any(kani, feature = "kani"))]
 mod verification {

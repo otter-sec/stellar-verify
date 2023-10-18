@@ -1,6 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote, ToTokens};
-use syn::{parse_macro_input, Block, Expr, FnArg, ItemFn, Pat, PatIdent};
+use soroban_env_common::val::Symbol;
+use syn::{parse_macro_input, Block, Expr, FnArg, ItemFn, LitStr, Pat, PatIdent};
 
 const KANI_UNWIND: usize = 10;
 
@@ -123,4 +124,12 @@ pub fn verify(
 
     }
     .into()
+}
+
+#[proc_macro]
+pub fn symbol_short(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input: LitStr = parse_macro_input!(input as LitStr);
+    let input_value = &input.value();
+    let symb = Symbol::new(input_value);
+    symb.to_token_stream().into()
 }

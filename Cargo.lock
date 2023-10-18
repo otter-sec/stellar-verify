@@ -27,6 +27,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "increment"
+version = "0.1.0"
+dependencies = [
+ "otter-stellar-verify",
+]
+
+[[package]]
 name = "kani"
 version = "0.34.0"
 dependencies = [
@@ -55,6 +62,7 @@ version = "0.1.0"
 dependencies = [
  "kani",
  "rand",
+ "soroban-env-common",
  "stellar-sdk-macros",
 ]
 
@@ -137,11 +145,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "soroban-env-common"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "stellar-sdk-macros"
 version = "0.1.0"
 dependencies = [
  "proc-macro2",
  "quote",
+ "soroban-env-common",
  "syn 1.0.109",
 ]
 

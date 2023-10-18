@@ -29,6 +29,10 @@ impl Env {
         }
     }
 
+    pub fn storage(&self) -> Storage {
+        Storage::default()
+    }
+
     pub fn current_contract_address(&self) -> Address {
         unsafe {
             Address {

@@ -1,5 +1,5 @@
 [package]
-name = "stellar-sdk-macros"
+name = "soroban-env-common"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,7 +9,3 @@ edition = "2021"
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true }
-soroban-env-common = { path = "../soroban-env-common" }
-
-[lib]
-proc-macro = true

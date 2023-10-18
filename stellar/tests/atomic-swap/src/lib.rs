@@ -29,23 +29,23 @@ impl AtomicSwapContract {
             let (token_a_client, token_a_admin) = Self::create_token_contract(&env, &token_admin);
             let token_a = token_a_client.address;
             let amount_a = kani::any::<i128>();
+            kani::assume(amount_a > 0);
             token_a_admin.mint(&a, &amount_a);
 
             let (token_b_client, token_b_admin) = Self::create_token_contract(&env, &token_admin);
             let token_b = token_b_client.address;
             let amount_b = kani::any::<i128>();
+            kani::assume(amount_b > 0);
             token_b_admin.mint(&b, &amount_b);
 
             let min_b_for_a = kani::any::<i128>();
             let min_a_for_b = kani::any::<i128>();
         }),
         succeeds_if({
-                min_b_for_a < amount_b &&
-                min_a_for_b < amount_a &&
-                // min_a_for_b > 0 &&
-                // min_b_for_a > 0 &&
-                // amount_a > 0 &&
-                // amount_b > 0
+                min_b_for_a < amount_b 
+                && min_a_for_b < amount_a
+                // && min_a_for_b > 0
+                // && min_b_for_a > 0
         }),
         post_condition({
             token_a_client.balance(&a) == (amount_a - min_a_for_b) &&
@@ -79,7 +79,6 @@ impl AtomicSwapContract {
         // if min_a_for_b < 0 || min_b_for_a < 0 {
         //     panic!("negative minimum amount");
         // }
-
         // Require authorization for a subset of arguments specific to a party.
         // Notice, that arguments are symmetric - there is no difference between
         // `a` and `b` in the call and hence their signatures can be used
