@@ -4,7 +4,7 @@ use soroban_sdk::{
     token::Client as TokenClient, verify, Address, Env, Symbol,
 };
 
-// const COUNTER: Symbol = symbol_short!("COUNTER");
+const COUNTER: Symbol = symbol_short!("COUNTER");
 
 #[contract]
 pub struct IncrementContract;
@@ -26,7 +26,6 @@ impl IncrementContract {
         }),
     )]
     pub fn increment(env: Env, mut count: u32) -> u32 {
-        let COUNTER: Symbol = Symbol::new("COUNTER");
         // Get the current count.
         let mut count: u32 = env.storage().instance().get(&COUNTER).unwrap_or(0); // If no value set, assume 0.
         log!(&env, "count: {}", count);

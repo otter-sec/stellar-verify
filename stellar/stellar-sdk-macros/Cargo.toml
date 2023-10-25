@@ -9,6 +9,7 @@ edition = "2021"
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true }
+darling = "0.20.0"
 soroban-env-common = { path = "../soroban-env-common" }
 
 [lib]

@@ -1,8 +1,18 @@
+use std::fmt::Display;
+
+use soroban_env_common::{FromValEnum, ToValEnum};
+
 use crate::{env::internal, Env, IntoVal};
 
 #[derive(Debug, Hash, Clone, Copy, Eq, PartialEq, PartialOrd, Ord)]
 pub struct Address {
     pub val: u8,
+}
+
+impl Display for Address {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "(Address {})", self.val)
+    }
 }
 
 impl Address {
@@ -17,6 +27,24 @@ impl<E: internal::Env> IntoVal<E, (Address, Address, i128, i128)>
         self
     }
 }
+
+impl ToValEnum for Address {
+    fn to_val(&self) -> crate::Val {
+        crate::Val::AddressObj(self.val as u32)
+    }
+}
+
+impl FromValEnum for Address {
+    fn from_val(val: crate::Val) -> Option<Self> {
+        if let crate::Val::AddressObj(u) = val {
+            Some(Address { val: u as u8 })
+        } else {
+            None
+        }
+    }
+}
+
+// For Kani
 const MAX_KEYS: u8 = 100;
 pub static mut KEYS: u8 = 0;
 

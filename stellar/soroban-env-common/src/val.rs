@@ -1,98 +1,112 @@
-use quote::{quote, ToTokens};
-const SCSYMBOL_LIMIT: usize = 10;
+use crate::{
+    num::{Duration, Timepoint},
+    symbol::Symbol,
+};
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub enum ValEnum {
-    Symbol(Symbol),
-    I32(i32),
-    U32(u32),
+#[derive(Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Val {
+    SymbolVal(Symbol),
+    I32Val(i32),
+    U32Val(u32),
+    I64Val(i64),
+    U64Val(u64),
+    String(crate::String),
+    TimepointVal(Timepoint),
+    DurationVal(Duration),
+    BoolVal(bool),
+    AddressObj(u32),
+    I128(i128),
+    U128(u128),
+    #[default]
+    Void,
+    Struct(Vec<Val>),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Copy, Default)]
-pub struct Symbol([u8; SCSYMBOL_LIMIT]);
-
-impl Symbol {
-    pub fn new(symbol: &str) -> Self {
-        let mut symbol_str = Self::default();
-        let symbol_bytes = symbol.as_bytes();
-
-        for (i, &c) in symbol_bytes.iter().enumerate().take(SCSYMBOL_LIMIT) {
-            symbol_str.0[i] = c;
+impl Val {
+    // To methods
+    pub fn to_i32(&self) -> Option<i32> {
+        if let Val::I32Val(i) = self {
+            Some(*i)
+        } else {
+            None
         }
+    }
 
-        symbol_str
+    pub fn to_u32(&self) -> Option<u32> {
+        if let Val::U32Val(i) = self {
+            Some(*i)
+        } else {
+            None
+        }
+    }
+
+    pub fn to_i64(&self) -> Option<i64> {
+        if let Val::I64Val(i) = self {
+            Some(*i)
+        } else {
+            None
+        }
+    }
+
+    pub fn to_u64(&self) -> Option<u64> {
+        if let Val::U64Val(i) = self {
+            Some(*i)
+        } else {
+            None
+        }
+    }
+
+    pub fn to_bool(&self) -> Option<bool> {
+        if let Val::BoolVal(b) = self {
+            Some(*b)
+        } else {
+            None
+        }
+    }
+
+    pub fn to_string(&self) -> Option<std::string::String> {
+        if let Val::String(s) = self {
+            Some(s.to_string())
+        } else if let Val::SymbolVal(s) = self {
+            Some(s.to_string())
+        } else {
+            None
+        }
     }
 }
 
 // Define the ToVal trait
 pub trait ToValEnum {
-    fn to_val(&self) -> ValEnum;
+    fn to_val(&self) -> Val;
 }
 
 // Define the FromVal trait
 pub trait FromValEnum: Sized {
-    fn from_val(val: ValEnum) -> Option<Self>;
+    fn from_val(val: Val) -> Option<Self>;
 }
 
-impl ToValEnum for u32 {
-    fn to_val(&self) -> ValEnum {
-        ValEnum::U32(*self)
+impl ToValEnum for bool {
+    fn to_val(&self) -> Val {
+        Val::BoolVal(*self)
     }
 }
 
-impl FromValEnum for u32 {
-    fn from_val(val: ValEnum) -> Option<u32> {
-        if let ValEnum::U32(u) = val {
-            Some(u)
+impl FromValEnum for bool {
+    fn from_val(val: Val) -> Option<bool> {
+        if let Val::BoolVal(b) = val {
+            Some(b)
         } else {
             None
         }
     }
 }
 
-impl ToValEnum for i32 {
-    fn to_val(&self) -> ValEnum {
-        ValEnum::I32(*self)
+impl From<&str> for Val {
+    fn from(s: &str) -> Self {
+        let custom_string = crate::String::from(s);
+        Val::String(custom_string)
     }
 }
 
-impl FromValEnum for i32 {
-    fn from_val(val: ValEnum) -> Option<i32> {
-        if let ValEnum::I32(i) = val {
-            Some(i)
-        } else {
-            None
-        }
-    }
-}
-
-impl ToValEnum for Symbol {
-    fn to_val(&self) -> ValEnum {
-        ValEnum::Symbol(*self)
-    }
-}
-
-impl FromValEnum for Symbol {
-    fn from_val(val: ValEnum) -> Option<Symbol> {
-        if let ValEnum::Symbol(symbol) = val {
-            Some(symbol)
-        } else {
-            None
-        }
-    }
-}
-
-// Implement ToTokens for your custom enum
-impl ToTokens for Symbol {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let mut value = Vec::new();
-        for i in 0..SCSYMBOL_LIMIT {
-            value.push(self.0[i]);
-        }
-        tokens.extend(quote! {
-            Symbol{
-               vec![#(#value),*]
-            }
-        });
-    }
-}
+#[derive(Debug, Eq, PartialEq)]
+pub struct ConversionError;

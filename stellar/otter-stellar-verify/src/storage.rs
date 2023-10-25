@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use soroban_env_common::{FromValEnum, ToValEnum, ValEnum};
+use soroban_env_common::{FromValEnum, ToValEnum, Val};
 
 use crate::token::MockToken;
 use crate::Address;
@@ -8,15 +8,27 @@ use crate::Address;
 #[derive(Clone, Default)]
 pub struct Storage {
     tokens: Vec<MockToken>,
-    storage: MockStorage,
+    instance: InstanceStorage,
+    temporary: TemporaryStorage,
+    persistent: PersistentStorage,
 }
 
 #[derive(Clone, Default)]
-pub struct MockStorage {
-    storage: Vec<(ValEnum, ValEnum)>,
+pub struct InstanceStorage {
+    storage: Vec<(Val, Val)>,
 }
 
-impl MockStorage {
+#[derive(Clone, Default)]
+pub struct TemporaryStorage {
+    storage: Vec<(Val, Val)>,
+}
+
+#[derive(Clone, Default)]
+pub struct PersistentStorage {
+    storage: Vec<(Val, Val)>,
+}
+
+impl PersistentStorage {
     pub fn get<K, V>(&self, key: &K) -> Option<V>
     where
         K: ToValEnum,
@@ -38,6 +50,77 @@ impl MockStorage {
         self.storage.push((key.to_val(), val.to_val())); // Convert key and val to ValEnum
     }
 
+    pub fn has<K>(&self, key: &K) -> bool
+    where
+        K: ToValEnum,
+    {
+        self.storage.iter().any(|(k, _)| k == &key.to_val())
+    }
+
+    pub fn bump<K>(&self, _: K, _: u32, _: u32) {}
+}
+
+impl TemporaryStorage {
+    pub fn get<K, V>(&self, key: &K) -> Option<V>
+    where
+        K: ToValEnum,
+        V: FromValEnum,
+    {
+        let matched = self.storage.iter().find(|(k, _)| k == &key.to_val());
+        if let Some((_, v)) = matched {
+            V::from_val(v.clone())
+        } else {
+            None
+        }
+    }
+
+    pub fn set<K, V>(&mut self, key: &K, val: &V)
+    where
+        K: ToValEnum,
+        V: ToValEnum,
+    {
+        self.storage.push((key.to_val(), val.to_val())); // Convert key and val to ValEnum
+    }
+
+    pub fn has<K>(&self, key: &K) -> bool
+    where
+        K: ToValEnum,
+    {
+        self.storage.iter().any(|(k, _)| k == &key.to_val())
+    }
+
+    pub fn bump<K>(&self, _: K, _: u32, _: u32) {}
+}
+
+impl InstanceStorage {
+    pub fn get<K, V>(&self, key: &K) -> Option<V>
+    where
+        K: ToValEnum,
+        V: FromValEnum,
+    {
+        let matched = self.storage.iter().find(|(k, _)| k == &key.to_val());
+        if let Some((_, v)) = matched {
+            V::from_val(v.clone())
+        } else {
+            None
+        }
+    }
+
+    pub fn set<K, V>(&mut self, key: &K, val: &V)
+    where
+        K: ToValEnum,
+        V: ToValEnum,
+    {
+        self.storage.push((key.to_val(), val.to_val())); // Convert key and val to ValEnum
+    }
+
+    pub fn has<K>(&self, key: &K) -> bool
+    where
+        K: ToValEnum,
+    {
+        self.storage.iter().any(|(k, _)| k == &key.to_val())
+    }
+
     pub fn bump(&self, _: u32, _: u32) {}
 }
 
@@ -52,8 +135,16 @@ impl Storage {
         self.tokens.iter().find(|t| t.address == *address).cloned()
     }
 
-    pub fn instance(&self) -> MockStorage {
-        self.storage.clone()
+    pub fn instance(&self) -> InstanceStorage {
+        self.instance.clone()
+    }
+
+    pub fn temporary(&self) -> TemporaryStorage {
+        self.temporary.clone()
+    }
+
+    pub fn persistent(&self) -> PersistentStorage {
+        self.persistent.clone()
     }
 
     pub fn insert_token(&mut self, token: MockToken) {

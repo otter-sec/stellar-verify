@@ -1,6 +1,6 @@
-use std::{cell::RefCell, rc::Rc};
-
+use crate::ledger::Ledger;
 use crate::{address::Address, storage::Storage, token::MockToken};
+use std::{cell::RefCell, rc::Rc};
 
 pub mod internal {
 
@@ -27,6 +27,10 @@ impl Env {
         Env {
             storage: Rc::new(RefCell::new(Storage::default())),
         }
+    }
+
+    pub fn ledger(&self) -> Ledger {
+        Ledger::default()
     }
 
     pub fn storage(&self) -> Storage {

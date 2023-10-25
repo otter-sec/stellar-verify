@@ -4,8 +4,8 @@ members = [
     "stellar/otter-stellar-verify",
     "stellar/stellar-sdk-macros",
     "stellar/soroban-env-common",
-    "stellar/tests/atomic-swap",
-    "stellar/tests/increment"
+    "stellar/soroban-token-sdk",
+    "stellar/tests/*"
 ]
 exclude = [
     "dependencies",
