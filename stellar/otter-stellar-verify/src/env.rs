@@ -1,6 +1,9 @@
 use crate::ledger::Ledger;
 use crate::{address::Address, storage::Storage, token::MockToken};
-use std::{cell::RefCell, rc::Rc};
+use std::{
+    cell::{Ref, RefCell},
+    rc::Rc,
+};
 
 pub mod internal {
 
@@ -33,8 +36,8 @@ impl Env {
         Ledger::default()
     }
 
-    pub fn storage(&self) -> Storage {
-        Storage::default()
+    pub fn storage(&self) -> Ref<Storage> {
+        self.storage.borrow()
     }
 
     pub fn current_contract_address(&self) -> Address {

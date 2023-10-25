@@ -1,4 +1,6 @@
+use std::cell::{RefCell, RefMut};
 use std::fmt::Debug;
+use std::rc::Rc;
 
 use soroban_env_common::{FromValEnum, ToValEnum, Val};
 
@@ -8,22 +10,22 @@ use crate::Address;
 #[derive(Clone, Default)]
 pub struct Storage {
     tokens: Vec<MockToken>,
-    instance: InstanceStorage,
-    temporary: TemporaryStorage,
-    persistent: PersistentStorage,
+    instance: Rc<RefCell<InstanceStorage>>,
+    temporary: Rc<RefCell<TemporaryStorage>>,
+    persistent: Rc<RefCell<PersistentStorage>>,
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 pub struct InstanceStorage {
     storage: Vec<(Val, Val)>,
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 pub struct TemporaryStorage {
     storage: Vec<(Val, Val)>,
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 pub struct PersistentStorage {
     storage: Vec<(Val, Val)>,
 }
@@ -126,7 +128,12 @@ impl InstanceStorage {
 
 impl Debug for Storage {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "Storage")
+        f.debug_struct("Storage")
+            .field("tokens", &self.tokens)
+            .field("instance", &self.instance)
+            .field("temporary", &self.temporary)
+            .field("persistent", &self.persistent)
+            .finish()
     }
 }
 
@@ -135,16 +142,16 @@ impl Storage {
         self.tokens.iter().find(|t| t.address == *address).cloned()
     }
 
-    pub fn instance(&self) -> InstanceStorage {
-        self.instance.clone()
+    pub fn instance(&self) -> RefMut<InstanceStorage> {
+        self.instance.borrow_mut()
     }
 
-    pub fn temporary(&self) -> TemporaryStorage {
-        self.temporary.clone()
+    pub fn temporary(&self) -> RefMut<TemporaryStorage> {
+        self.temporary.borrow_mut()
     }
 
-    pub fn persistent(&self) -> PersistentStorage {
-        self.persistent.clone()
+    pub fn persistent(&self) -> RefMut<PersistentStorage> {
+        self.persistent.borrow_mut()
     }
 
     pub fn insert_token(&mut self, token: MockToken) {
@@ -160,5 +167,25 @@ impl Storage {
             .unwrap();
         //replace the token
         self.tokens[index] = token;
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use soroban_env_common::Symbol;
+    use stellar_sdk_macros::symbol_short;
+
+    use crate::Env;
+
+    #[test]
+    pub fn test_set_get_instance() {
+        let env = Env::default();
+        let counter: Symbol = symbol_short!("COUNTER");
+        let count = 1;
+
+        env.storage().instance().set(&counter, &count);
+
+        let result = env.storage().instance().get(&counter).unwrap_or(0);
+        assert_eq!(result, count);
     }
 }

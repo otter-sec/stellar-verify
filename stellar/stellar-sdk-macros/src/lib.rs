@@ -3,7 +3,7 @@ use quote::{format_ident, quote, ToTokens};
 use soroban_env_common::symbol::Symbol;
 use syn::{parse_macro_input, Block, Error, Expr, FnArg, ItemFn, LitStr, Pat, PatIdent};
 
-const KANI_UNWIND: usize = 10;
+const KANI_UNWIND: usize = 20;
 
 #[proc_macro_attribute]
 pub fn contractimpl(

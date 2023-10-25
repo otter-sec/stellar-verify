@@ -16,16 +16,15 @@ impl IncrementContract {
         verify,
         init({
             let env = Env::default();
-            let count = 10;
         }),
         succeeds_if({
             true
         }),
         post_condition({
-            count == 10
+            true
         }),
     )]
-    pub fn increment(env: Env, mut count: u32) -> u32 {
+    pub fn increment(env: Env) -> u32 {
         // Get the current count.
         let mut count: u32 = env.storage().instance().get(&COUNTER).unwrap_or(0); // If no value set, assume 0.
         log!(&env, "count: {}", count);
