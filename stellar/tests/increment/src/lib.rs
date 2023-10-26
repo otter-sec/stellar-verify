@@ -1,8 +1,5 @@
 // #![no_std]
-use soroban_sdk::{
-    contract, contractimpl, log, symbol_short, token::AdminClient as TokenAdminClient,
-    token::Client as TokenClient, verify, Address, Env, Symbol,
-};
+use soroban_sdk::{contract, contractimpl, log, symbol_short, verify, Address, Env, Symbol};
 
 const COUNTER: Symbol = symbol_short!("COUNTER");
 
@@ -21,7 +18,7 @@ impl IncrementContract {
             true
         }),
         post_condition({
-            true
+            env.storage().instance().get::<_, u32>(&COUNTER).unwrap_or(0) == 1
         }),
     )]
     pub fn increment(env: Env) -> u32 {

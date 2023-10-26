@@ -5,8 +5,7 @@
 #![no_std]
 
 use soroban_sdk::{
-    contract, contractimpl, token, token::AdminClient as TokenAdminClient,
-    token::Client as TokenClient, verify, Address, Env, IntoVal,
+    contract, contractimpl, token, verify, Address, Env, IntoVal,
 };
 
 #[contract]

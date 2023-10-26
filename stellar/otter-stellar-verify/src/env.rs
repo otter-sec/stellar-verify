@@ -10,9 +10,17 @@ pub mod internal {
     pub trait Env {}
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Env {
     pub storage: Rc<RefCell<Storage>>,
+}
+
+impl Clone for Env {
+    fn clone(&self) -> Self {
+        Env {
+            storage: self.storage.clone(), // Cloning the Rc
+        }
+    }
 }
 
 impl Default for Env {

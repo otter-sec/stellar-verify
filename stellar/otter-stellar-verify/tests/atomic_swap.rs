@@ -3,8 +3,8 @@
 //! off-chain.
 //! This example demonstrates how multi-party authorization can be implemented.
 #![no_std]
-
-use otter_stellar_verify::{contract, contractimpl, token, Address, Env, IntoVal};
+use otter_stellar_verify as soroban_sdk;
+use soroban_sdk::{contract, contractimpl, token, Address, Env, IntoVal};
 
 #[contract]
 pub struct AtomicSwapContract;

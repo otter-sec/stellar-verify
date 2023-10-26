@@ -1,4 +1,4 @@
-use proc_macro2::TokenStream;
+use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use soroban_env_common::symbol::Symbol;
 use syn::{parse_macro_input, Block, Error, Expr, FnArg, ItemFn, LitStr, Pat, PatIdent};
@@ -18,7 +18,14 @@ pub fn contract(
     _metadata: proc_macro::TokenStream,
     input: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    input
+    let input: TokenStream = input.into();
+    quote! {
+        use soroban_sdk::{
+            token::AdminClient as TokenAdminClient, token::Client as TokenClient
+        };
+        #input
+    }
+    .into()
 }
 
 #[proc_macro_attribute]
@@ -69,7 +76,13 @@ pub fn verify(
             if let Pat::Ident(PatIdent { ident, .. }) = &*pat.pat {
                 let arg_name = ident.clone();
                 // let arg_ty = &pat.ty;
-                arg_names.push(arg_name);
+                if arg_name == "env" {
+                    // Create new variable name for the cloned environment as env_clone
+                    arg_names.push(Ident::new("env_clone", arg_name.span()));
+                    continue;
+                } else {
+                    arg_names.push(arg_name);
+                }
             }
         }
     }
@@ -104,6 +117,9 @@ pub fn verify(
 
             // First: Initialize the environment and declare the variables
             #(#extracted_content)*
+
+            // Clone the environment
+            let env_clone = env.clone();
 
             // Register the contract
             let _ = env.register_contract(None);
