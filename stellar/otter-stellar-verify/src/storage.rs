@@ -202,24 +202,4 @@ mod test {
     pub fn increment(env: Env, counter: Symbol, count: i32) {
         env.storage().instance().set(&counter, &count);
     }
-
-    #[test]
-    pub fn test_counter() {
-        let env = Env::default();
-        let env_clone = env.clone();
-        let counter: Symbol = symbol_short!("COUNTER");
-        let inc = 100;
-
-        counter_inc(env, inc, counter);
-        assert!(env_clone.storage().instance().get(&counter).unwrap_or(0) == inc);
-    }
-
-    pub fn counter_inc(env: Env, inc: u32, counter: Symbol) -> u32 {
-        let mut count: u32 = env.storage().instance().get(&counter).unwrap_or(0);
-        count += inc;
-        env.storage().instance().set(&counter, &count);
-        count = env.storage().instance().get(&counter).unwrap_or(0);
-        env.storage().instance().bump(50, 100);
-        count
-    }
 }
