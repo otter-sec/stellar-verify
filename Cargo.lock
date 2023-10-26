@@ -192,6 +192,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "soroban-custom-types-contract"
+version = "0.0.0"
+dependencies = [
+ "otter-stellar-verify",
+]
+
+[[package]]
 name = "soroban-env-common"
 version = "0.1.0"
 dependencies = [

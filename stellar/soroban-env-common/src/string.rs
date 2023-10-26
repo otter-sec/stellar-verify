@@ -33,6 +33,14 @@ impl String {
     pub fn as_bytes(&self) -> &[u8] {
         &self.0
     }
+
+    pub fn to_le_bytes(&self) -> [u8; core::mem::size_of::<Self>()] {
+        self.0
+    }
+
+    pub fn from_le_bytes(bytes: [u8; std::mem::size_of::<Self>()]) -> Self {
+        String(bytes)
+    }
 }
 
 impl From<&str> for String {

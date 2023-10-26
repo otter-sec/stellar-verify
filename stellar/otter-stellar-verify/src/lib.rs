@@ -9,7 +9,7 @@ pub use {
     address::Address,
     env::{Env, IntoVal},
     soroban_env_common::{
-        symbol::Symbol, ConversionError, FromValEnum, String, ToValEnum, Val, Vec,
+        symbol::Symbol, ConversionError, FromValEnum, String, Timepoint, ToValEnum, Val, Vec,
     },
     stellar_sdk_macros::{
         contract, contractimpl, contractmeta, contracttype, symbol_short, verify,

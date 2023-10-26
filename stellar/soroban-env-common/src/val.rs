@@ -19,7 +19,7 @@ pub enum Val {
     U128(u128),
     #[default]
     Void,
-    Struct(Vec<Val>),
+    Struct(Vec<u8>),
 }
 
 impl Val {
