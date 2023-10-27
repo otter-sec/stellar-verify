@@ -13,21 +13,6 @@ pub struct State {
     pub last_incr: u32,
 }
 
-impl FromValEnum for State {
-    fn from_val(val: soroban_sdk::Val) -> Option<Self> {
-        match val {
-            Val::Struct(bytes) => Some(Self::deserialize(&bytes)),
-            _ => None,
-        }
-    }
-}
-
-impl ToValEnum for State {
-    fn to_val(&self) -> Val {
-        Val::Struct(self.serialize())
-    }
-}
-
 const STATE: Symbol = symbol_short!("STATE");
 
 #[contract]
