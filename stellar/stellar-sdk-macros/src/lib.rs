@@ -189,6 +189,9 @@ pub fn contracttype(
                     // Generate the deserialization code
                     let deserialize_code = generate_deserialize_code(named);
 
+                    // Generate the code for the FromValEnum and ToValEnum traits
+                    let traits_code = generate_traits_for_structs(struct_name.clone());
+
                     // Combine serialization and deserialization code
                     let result = quote! {
                         #input
@@ -196,6 +199,7 @@ pub fn contracttype(
                             #serialize_code
                             #deserialize_code
                         }
+                        #traits_code
                     };
 
                     return result.into();
@@ -288,4 +292,25 @@ fn generate_deserialize_code(
             }
         }
     }
+}
+
+fn generate_traits_for_structs(name:Ident) -> proc_macro2::TokenStream {
+    quote! {
+        impl FromValEnum for #name {
+            fn from_val(val: soroban_sdk::Val) -> Option<Self> {
+                match val {
+                    Val::Struct(bytes) => Some(Self::deserialize(&bytes)),
+                    _ => None,
+                }
+            }
+        }
+
+        impl ToValEnum for #name {
+            fn to_val(&self) -> Val {
+                Val::Struct(self.serialize())
+            }
+        }
+    }
+
+    
 }
