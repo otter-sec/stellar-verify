@@ -12,7 +12,7 @@ pub use {
         symbol::Symbol, ConversionError, FromValEnum, String, Timepoint, ToValEnum, Val, Vec,
     },
     stellar_sdk_macros::{
-        contract, contractimpl, contractmeta, contracttype, symbol_short, verify,
+        contract, contracterror, contractimpl, contractmeta, contracttype, symbol_short, verify,
     },
 };
 
