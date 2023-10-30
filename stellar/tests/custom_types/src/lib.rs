@@ -1,15 +1,15 @@
 #![no_std]
+use kani::Arbitrary;
 use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short, verify, Address, Env, Symbol,
 };
-
 extern crate alloc;
 use alloc::vec::Vec;
 
 use soroban_sdk::{FromValEnum, ToValEnum, Val};
 
 #[contracttype]
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Arbitrary)]
 pub struct State {
     pub count: u32,
     pub last_incr: u32,
@@ -28,12 +28,7 @@ impl IncrementContract {
         init({
             let env = Env::default();
             let incr = kani::any();
-            env.storage().instance().set(&STATE, 
-                &State {
-                    count: kani::any(),
-                    last_incr: kani::any()
-                }
-            );
+            env.storage().instance().set(&STATE, &kani::any::<State>());
         }),
         succeeds_if({
             Self::get_state(env.clone()).count <= u32::MAX - incr
