@@ -234,6 +234,21 @@ pub fn contracttype(
     .into()
 }
 
+
+
+#[proc_macro_attribute]
+pub fn contracterror(_attrs: proc_macro::TokenStream, input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = parse_macro_input!(input as syn::ItemEnum);
+
+    // The rest remains the same
+    let expanded = quote! {
+        #input
+    };
+
+    expanded.into()
+}
+
+
 fn generate_serialize_code(
     fields: &syn::punctuated::Punctuated<syn::Field, syn::token::Comma>,
 ) -> proc_macro2::TokenStream {
