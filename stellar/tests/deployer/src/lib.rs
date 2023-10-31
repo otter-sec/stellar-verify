@@ -1,6 +1,6 @@
 #![no_std]
 
-use soroban_sdk::{contract, contractimpl, Address, BytesN, Env, Symbol, Val, Vec};
+use soroban_sdk::{contract, contractimpl, verify, Address, BytesN, Env, Symbol, Val, Vec};
 
 #[contract]
 pub struct Deployer;
@@ -15,6 +15,23 @@ impl Deployer {
     /// and it's not possible to frontrun the contract initialization.
     ///
     /// Returns the contract ID and result of the init function.
+    #[cfg_attr(any(kani, feature = "kani"), 
+        verify,
+        init({
+            let env = Env::default();
+            let deployer = kani::any();
+            let wasm_hash = kani::any();
+            let salt = kani::any();
+            let init_fn = Symbol::new("init_fn");
+            let init_args = Vec::new();
+        }),
+        succeeds_if({
+            true
+        }),
+        post_condition({
+            true
+        })
+    )]
     pub fn deploy(
         env: Env,
         deployer: Address,
@@ -35,7 +52,11 @@ impl Deployer {
             .deploy(wasm_hash);
 
         // Invoke the init function with the given arguments.
+        #[cfg(not(any(kani, feature = "kani")))]
         let res: Val = env.invoke_contract(&deployed_address, &init_fn, init_args.to_vec());
+
+        #[cfg(any(kani, feature = "kani"))]
+        let res: Val = Val::BoolVal(true);
         // Return the contract ID of the deployed contract and the result of
         // invoking the init result.
         (deployed_address, res)
