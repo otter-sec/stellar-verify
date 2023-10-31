@@ -1,4 +1,6 @@
 use crate::ledger::Ledger;
+use crate::Deployer;
+use crate::Val;
 use crate::{address::Address, events::Events, storage::Storage, token::MockToken};
 use std::{
     cell::{Ref, RefCell},
@@ -58,6 +60,19 @@ impl Env {
                 val: CURRENT_CONTRACT,
             }
         }
+    }
+
+    pub fn deployer(&self) -> Deployer {
+        Deployer::new(self)
+    }
+
+    pub fn invoke_contract<T>(
+        &self,
+        _contract_address: &Address,
+        _func: &crate::Symbol,
+        _args: Vec<Val>,
+    ) -> T {
+        todo!("Not yet implemented");
     }
 
     pub fn mock_all_auths(&self) {}

@@ -2,6 +2,7 @@ pub mod address;
 pub mod auth;
 pub mod bytes;
 pub mod crypto;
+pub mod deploy;
 pub mod env;
 pub mod events;
 pub mod ledger;
@@ -13,6 +14,7 @@ pub use {
     address::Address,
     auth::Context,
     bytes::{Bytes, BytesN},
+    deploy::Deployer,
     env::{Env, IntoVal},
     events::Events,
     soroban_env_common::{
