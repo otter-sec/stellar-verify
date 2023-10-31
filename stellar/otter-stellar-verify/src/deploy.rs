@@ -18,9 +18,9 @@ impl Deployer {
         salt: impl IntoVal<Env, BytesN<32>>,
     ) -> DeployerWithAddress {
         DeployerWithAddress {
-            env: self.env.clone(),
-            address: self.env.current_contract_address(),
-            salt: salt.into_val(&self.env),
+            _env: self.env.clone(),
+            _address: self.env.current_contract_address(),
+            _salt: salt.into_val(&self.env),
         }
     }
 
@@ -30,9 +30,9 @@ impl Deployer {
         salt: impl IntoVal<Env, BytesN<32>>,
     ) -> DeployerWithAddress {
         DeployerWithAddress {
-            env: self.env.clone(),
-            address,
-            salt: salt.into_val(&self.env),
+            _env: self.env.clone(),
+            _address: address,
+            _salt: salt.into_val(&self.env),
         }
     }
 
@@ -41,22 +41,22 @@ impl Deployer {
         serialized_asset: impl IntoVal<Env, Bytes>,
     ) -> DeployerWithAsset {
         DeployerWithAsset {
-            env: self.env.clone(),
-            serialized_asset: serialized_asset.into_val(&self.env),
+            _env: self.env.clone(),
+            _serialized_asset: serialized_asset.into_val(&self.env),
         }
     }
 
-    pub fn upload_contract_wasm(&self, contract_wasm: impl IntoVal<Env, Bytes>) -> BytesN<32> {
+    pub fn upload_contract_wasm(&self, _contract_wasm: impl IntoVal<Env, Bytes>) -> BytesN<32> {
         kani::any()
     }
 
-    pub fn update_current_contract_wasm(&self, wasm_hash: impl IntoVal<Env, BytesN<32>>) {}
+    pub fn update_current_contract_wasm(&self, _wasm_hash: impl IntoVal<Env, BytesN<32>>) {}
 }
 
 pub struct DeployerWithAddress {
-    env: Env,
-    address: Address,
-    salt: BytesN<32>,
+    _env: Env,
+    _address: Address,
+    _salt: BytesN<32>,
 }
 
 impl DeployerWithAddress {
@@ -70,8 +70,8 @@ impl DeployerWithAddress {
 }
 
 pub struct DeployerWithAsset {
-    env: Env,
-    serialized_asset: Bytes,
+    _env: Env,
+    _serialized_asset: Bytes,
 }
 
 impl DeployerWithAsset {
