@@ -1,4 +1,6 @@
 pub mod address;
+pub mod bytes;
+pub mod crypto;
 pub mod env;
 pub mod ledger;
 pub mod storage;
@@ -7,9 +9,11 @@ pub mod token;
 
 pub use {
     address::Address,
+    bytes::{Bytes, BytesN},
     env::{Env, IntoVal},
     soroban_env_common::{
-        symbol::Symbol, ConversionError, FromValEnum, String, Timepoint, ToValEnum, Val, Vec,
+        symbol::Symbol, BytesObject, ConversionError, FromValEnum, String, Timepoint, ToValEnum,
+        Val, Vec,
     },
     stellar_sdk_macros::{
         contract, contractimpl, contractmeta, contracttype, symbol_short, verify,
@@ -25,16 +29,6 @@ macro_rules! log {
         // Do nothing.
     };
 }
-
-// #[macro_export]
-// macro_rules! vec {
-//     ($env:expr $(,)?) => {
-//         $crate::Vec::new($env)
-//     };
-//     ($env:expr, $($x:expr),+ $(,)?) => {
-//         $crate::Vec::from_array($env, [$($x),+])
-//     };
-// }
 
 #[macro_export]
 macro_rules! vec {

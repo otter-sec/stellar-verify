@@ -10,6 +10,7 @@ pub enum Val {
     U32Val(u32),
     I64Val(i64),
     U64Val(u64),
+    USizeVal(usize),
     String(crate::String),
     TimepointVal(Timepoint),
     DurationVal(Duration),
@@ -20,6 +21,8 @@ pub enum Val {
     #[default]
     Void,
     Struct(Vec<u8>),
+    VecVal(Vec<Val>),
+    BytesNVal(Vec<u8>),
 }
 
 impl Val {
@@ -50,6 +53,14 @@ impl Val {
 
     pub fn to_u64(&self) -> Option<u64> {
         if let Val::U64Val(i) = self {
+            Some(*i)
+        } else {
+            None
+        }
+    }
+
+    pub fn to_usize(&self) -> Option<usize> {
+        if let Val::USizeVal(i) = self {
             Some(*i)
         } else {
             None
@@ -101,12 +112,21 @@ impl FromValEnum for bool {
     }
 }
 
+impl From<usize> for Val {
+    fn from(i: usize) -> Self {
+        Val::USizeVal(i)
+    }
+}
+
 impl From<&str> for Val {
     fn from(s: &str) -> Self {
         let custom_string = crate::String::from(s);
         Val::String(custom_string)
     }
 }
+
+#[derive(Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+pub struct BytesObject(crate::Val);
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct ConversionError;

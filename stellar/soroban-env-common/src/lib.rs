@@ -8,6 +8,6 @@ pub use {
     num::{Duration, Timepoint},
     string::String,
     symbol::Symbol,
-    val::{ConversionError, FromValEnum, ToValEnum, Val},
+    val::{BytesObject, ConversionError, FromValEnum, ToValEnum, Val},
     vec::Vec,
 };

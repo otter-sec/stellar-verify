@@ -56,6 +56,10 @@ impl Symbol {
         &self.0
     }
 
+    pub const fn from(s: &str) -> Self {
+        Self::new(s)
+    }
+
     pub const fn new(symbol: &str) -> Self {
         let mut n = 0;
         let sym_bytes = symbol.as_bytes();
