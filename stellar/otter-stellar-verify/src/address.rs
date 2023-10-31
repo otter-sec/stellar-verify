@@ -57,3 +57,12 @@ impl Address {
         }
     }
 }
+
+#[cfg(any(kani, feature = "kani"))]
+impl kani::Arbitrary for Address {
+    fn any() -> Self {
+        Address {
+            val: kani::any::<u8>(),
+        }
+    }
+}
