@@ -46,8 +46,13 @@ impl Deployer {
         }
     }
 
+    #[cfg(kani)]
     pub fn upload_contract_wasm(&self, _contract_wasm: impl IntoVal<Env, Bytes>) -> BytesN<32> {
         kani::any()
+    }
+    #[cfg(not(kani))]
+    pub fn upload_contract_wasm(&self, _contract_wasm: impl IntoVal<Env, Bytes>) -> BytesN<32> {
+        BytesN::<32>::default()
     }
 
     pub fn update_current_contract_wasm(&self, _wasm_hash: impl IntoVal<Env, BytesN<32>>) {}
@@ -60,12 +65,24 @@ pub struct DeployerWithAddress {
 }
 
 impl DeployerWithAddress {
+    #[cfg(kani)]
     pub fn deployed_address(&self) -> Address {
         kani::any()
     }
 
+    #[cfg(not(kani))]
+    pub fn deployed_address(&self) -> Address {
+        Address::default()
+    }
+
+    #[cfg(kani)]
     pub fn deploy(&self, _wasm_hash: impl IntoVal<Env, BytesN<32>>) -> Address {
         kani::any()
+    }
+
+    #[cfg(not(kani))]
+    pub fn deploy(&self, _wasm_hash: impl IntoVal<Env, BytesN<32>>) -> Address {
+        Address::default()
     }
 }
 
@@ -74,6 +91,7 @@ pub struct DeployerWithAsset {
     _serialized_asset: Bytes,
 }
 
+#[cfg(kani)]
 impl DeployerWithAsset {
     pub fn deployed_address(&self) -> Address {
         kani::any()
@@ -81,5 +99,16 @@ impl DeployerWithAsset {
 
     pub fn deploy(&self) -> Address {
         kani::any()
+    }
+}
+
+#[cfg(not(kani))]
+impl DeployerWithAsset {
+    pub fn deployed_address(&self) -> Address {
+        Address::default()
+    }
+
+    pub fn deploy(&self) -> Address {
+        Address::default()
     }
 }
