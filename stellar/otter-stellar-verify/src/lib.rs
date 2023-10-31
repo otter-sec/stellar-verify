@@ -1,4 +1,5 @@
 pub mod address;
+pub mod auth;
 pub mod bytes;
 pub mod crypto;
 pub mod env;
@@ -10,6 +11,7 @@ pub mod token;
 
 pub use {
     address::Address,
+    auth::Context,
     bytes::{Bytes, BytesN},
     env::{Env, IntoVal},
     events::Events,

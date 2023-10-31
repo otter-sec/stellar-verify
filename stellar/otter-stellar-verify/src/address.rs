@@ -18,6 +18,16 @@ impl Display for Address {
 impl Address {
     pub fn require_auth_for_args(&self, _args: (Address, Address, i128, i128)) {}
     pub fn require_auth(&self) {}
+
+    pub fn to_le_bytes(&self) -> [u8; 1] {
+        self.val.to_le_bytes()
+    }
+
+    pub fn from_le_bytes(bytes: [u8; 1]) -> Self {
+        Self {
+            val: u8::from_le_bytes(bytes),
+        }
+    }
 }
 
 impl<E: internal::Env> IntoVal<E, (Address, Address, i128, i128)>
