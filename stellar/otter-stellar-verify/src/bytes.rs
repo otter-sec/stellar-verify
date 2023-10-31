@@ -115,6 +115,16 @@ impl Bytes {
     }
 }
 
+#[cfg(any(kani, feature = "kani"))]
+impl kani::Arbitrary for Bytes {
+    fn any() -> Self {
+        let mut v = Vec::new();
+        for _ in 0..kani::any::<u8>() % 10 {
+            v.push(kani::any());
+        }
+        Bytes(v)
+    }
+}
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BytesN<const N: usize>(pub Bytes);
 
@@ -176,5 +186,16 @@ impl<const N: usize> BytesN<N> {
 
     pub fn iter(&self) -> std::slice::Iter<u8> {
         self.0.iter()
+    }
+}
+
+#[cfg(any(kani, feature = "kani"))]
+impl<const N: usize> kani::Arbitrary for BytesN<N> {
+    fn any() -> Self {
+        let mut v = Vec::new();
+        for _ in 0..N {
+            v.push(kani::any::<u8>());
+        }
+        BytesN(Bytes(v))
     }
 }
