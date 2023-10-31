@@ -2,6 +2,7 @@ pub mod address;
 pub mod bytes;
 pub mod crypto;
 pub mod env;
+pub mod events;
 pub mod ledger;
 pub mod storage;
 pub mod testutils;
@@ -11,6 +12,7 @@ pub use {
     address::Address,
     bytes::{Bytes, BytesN},
     env::{Env, IntoVal},
+    events::Events,
     soroban_env_common::{
         symbol::Symbol, BytesObject, ConversionError, FromValEnum, String, Timepoint, ToValEnum,
         Val, Vec,
