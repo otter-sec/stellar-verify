@@ -4,7 +4,7 @@ use soroban_env_common::{FromValEnum, ToValEnum};
 
 use crate::{env::internal, Env, IntoVal};
 
-#[derive(Debug, Hash, Clone, Copy, Eq, PartialEq, PartialOrd, Ord)]
+#[derive(Debug, Hash, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Default)]
 pub struct Address {
     pub val: u8,
 }
@@ -56,7 +56,7 @@ impl FromValEnum for Address {
 
 // For Kani
 const MAX_KEYS: u8 = 100;
-pub static mut KEYS: u8 = 0;
+pub static mut KEYS: u8 = 1;
 
 impl Address {
     pub fn new(_env: &Env) -> Self {

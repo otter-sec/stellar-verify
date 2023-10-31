@@ -1,7 +1,6 @@
 use crate::{env::internal, Env, IntoVal};
 use soroban_env_common::{FromValEnum, ToValEnum};
 
-
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Bytes(pub Vec<u8>);
 
@@ -130,6 +129,12 @@ impl kani::Arbitrary for Bytes {
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BytesN<const N: usize>(pub Bytes);
+
+impl<const N: usize> Default for BytesN<N> {
+    fn default() -> Self {
+        BytesN(Bytes(vec![0; N]))
+    }
+}
 
 impl<const N: usize> ToValEnum for BytesN<N> {
     fn to_val(&self) -> crate::Val {
