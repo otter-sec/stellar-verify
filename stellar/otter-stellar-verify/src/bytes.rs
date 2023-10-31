@@ -1,4 +1,5 @@
 use crate::Env;
+use soroban_env_common::{FromValEnum, ToValEnum};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Bytes(pub Vec<u8>);
@@ -117,6 +118,26 @@ impl Bytes {
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BytesN<const N: usize>(pub Bytes);
+
+impl<const N: usize> ToValEnum for BytesN<N> {
+    fn to_val(&self) -> crate::Val {
+        crate::Val::BytesNVal(self.0.to_vec())
+    }
+}
+
+impl<const N: usize> FromValEnum for BytesN<N> {
+    fn from_val(val: crate::Val) -> Option<Self> {
+        if let crate::Val::BytesNVal(u) = val {
+            if u.len() == N {
+                Some(BytesN(Bytes(u)))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+}
 
 impl<const N: usize> BytesN<N> {
     // Create a new `BytesN` instance from an array of u8
