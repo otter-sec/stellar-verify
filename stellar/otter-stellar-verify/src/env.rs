@@ -1,5 +1,5 @@
 use crate::ledger::Ledger;
-use crate::{address::Address, storage::Storage, token::MockToken};
+use crate::{address::Address, events::Events, storage::Storage, token::MockToken};
 use std::{
     cell::{Ref, RefCell},
     rc::Rc,
@@ -38,6 +38,10 @@ impl Env {
         Env {
             storage: Rc::new(RefCell::new(Storage::default())),
         }
+    }
+
+    pub fn events(&self) -> Events {
+        Events::new(self)
     }
 
     pub fn ledger(&self) -> Ledger {
