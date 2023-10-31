@@ -7,6 +7,7 @@ pub mod env;
 pub mod events;
 pub mod ledger;
 pub mod storage;
+pub mod symbol;
 pub mod testutils;
 pub mod token;
 

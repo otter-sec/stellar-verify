@@ -152,7 +152,7 @@ pub fn symbol_short(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
     match Symbol::try_from_bytes(symbol_str.as_bytes()) {
         Ok(_) => quote! {
-            Symbol::new(#symbol_str)
+            Symbol::new_from_str(#symbol_str)
         }
         .into(),
         Err(e) => Error::new(input.span(), format!("{e}"))
