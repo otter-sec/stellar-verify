@@ -1,4 +1,4 @@
-use crate::Env;
+use crate::{env::internal, Env, IntoVal};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Bytes(pub Vec<u8>);
@@ -125,6 +125,7 @@ impl kani::Arbitrary for Bytes {
         Bytes(v)
     }
 }
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BytesN<const N: usize>(pub Bytes);
 
@@ -197,5 +198,11 @@ impl<const N: usize> kani::Arbitrary for BytesN<N> {
             v.push(kani::any::<u8>());
         }
         BytesN(Bytes(v))
+    }
+}
+
+impl<E: internal::Env> IntoVal<E, BytesN<32>> for BytesN<32> {
+    fn into_val(self, _env: &E) -> BytesN<32> {
+        self
     }
 }
