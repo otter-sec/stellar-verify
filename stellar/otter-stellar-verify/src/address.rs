@@ -4,7 +4,7 @@ use soroban_env_common::{FromValEnum, ToValEnum};
 
 use crate::{env::internal, Env, IntoVal};
 
-#[derive(Debug, Hash, Clone, Copy, Eq, PartialEq, PartialOrd, Ord)]
+#[derive(Debug, Hash, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Default)]
 pub struct Address {
     pub val: u8,
 }
@@ -18,6 +18,16 @@ impl Display for Address {
 impl Address {
     pub fn require_auth_for_args(&self, _args: (Address, Address, i128, i128)) {}
     pub fn require_auth(&self) {}
+
+    pub fn to_le_bytes(&self) -> [u8; 1] {
+        self.val.to_le_bytes()
+    }
+
+    pub fn from_le_bytes(bytes: [u8; 1]) -> Self {
+        Self {
+            val: u8::from_le_bytes(bytes),
+        }
+    }
 }
 
 impl<E: internal::Env> IntoVal<E, (Address, Address, i128, i128)>
@@ -46,7 +56,7 @@ impl FromValEnum for Address {
 
 // For Kani
 const MAX_KEYS: u8 = 100;
-pub static mut KEYS: u8 = 0;
+pub static mut KEYS: u8 = 1;
 
 impl Address {
     pub fn new(_env: &Env) -> Self {

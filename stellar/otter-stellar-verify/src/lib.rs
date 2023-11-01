@@ -1,4 +1,5 @@
 pub mod address;
+pub mod auth;
 pub mod bytes;
 pub mod crypto;
 pub mod deploy;
@@ -6,11 +7,13 @@ pub mod env;
 pub mod events;
 pub mod ledger;
 pub mod storage;
+pub mod symbol;
 pub mod testutils;
 pub mod token;
 
 pub use {
     address::Address,
+    auth::Context,
     bytes::{Bytes, BytesN},
     deploy::Deployer,
     env::{Env, IntoVal},

@@ -57,10 +57,10 @@ impl Symbol {
     }
 
     pub const fn from(s: &str) -> Self {
-        Self::new(s)
+        Self::new_from_str(s)
     }
 
-    pub const fn new(symbol: &str) -> Self {
+    pub const fn new_from_str(symbol: &str) -> Self {
         let mut n = 0;
         let sym_bytes = symbol.as_bytes();
         let mut bytes = [b'\x00'; SCSYMBOL_LIMIT];
@@ -127,7 +127,7 @@ mod test {
     #[test]
     fn test_symbol() {
         let s = "hello";
-        let sym = crate::Symbol::new(s);
+        let sym = crate::Symbol::new_from_str(s);
         let val = sym.to_val();
         let sym2 = crate::Symbol::from_val(val).unwrap();
         assert_eq!(sym, sym2);
