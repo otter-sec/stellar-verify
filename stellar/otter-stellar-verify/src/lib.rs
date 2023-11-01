@@ -47,6 +47,18 @@ macro_rules! vec {
     );
 }
 
+#[macro_export]
+macro_rules! contractimport {
+    (file = $path:expr) => {
+        pub struct Client {}
+
+        impl Client {
+            pub fn new(_env: &crate::Env, _contract: &crate::Address) -> Self {
+                Self {}
+            }
+        }
+    };
+}
 #[cfg(any(kani, feature = "kani"))]
 mod verification {
     use super::*;
