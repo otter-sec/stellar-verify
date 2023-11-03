@@ -63,7 +63,7 @@ pub fn verify(
     let function_name = item_fn.sig.ident.clone();
 
     let mut precondition: TokenStream = quote! {
-       let _ = Env::new();
+       {}
     };
     let mut succeeds_if: Option<TokenStream> = None;
     let mut postcondition: Option<TokenStream> = None;
@@ -79,9 +79,26 @@ pub fn verify(
         }
     }
 
+    if postcondition.is_none() {
+        postcondition = Some(quote! { true });
+    }
+
+    if succeeds_if.is_none() {
+        succeeds_if = Some(quote! { true });
+    }
+
     let input: proc_macro::TokenStream = precondition.into();
     // Parse the input as a Block
     let block: Block = parse_macro_input!(input);
+    
+    let mut inited_vars = Vec::new();
+    for stmt in block.clone().stmts {
+        if let syn::Stmt::Local(local) = stmt {
+            if let Pat::Ident(pat_ident) = local.pat {
+                inited_vars.push(pat_ident.ident);
+            }
+        }
+    }
 
     // Extract the content of the block which inlclude's the variable declarations
     let extracted_content = &block.stmts;
@@ -90,19 +107,28 @@ pub fn verify(
 
     // Create a Vec to store the input argument names
     let mut arg_names = Vec::new();
+    let mut arg_initializations = Vec::new();
 
     // Iterate over the function's arguments and add their names to the Vec
     for input_arg in &item_fn.sig.inputs {
         if let FnArg::Typed(pat) = input_arg {
             if let Pat::Ident(PatIdent { ident, .. }) = &*pat.pat {
                 let arg_name = ident.clone();
-                // let arg_ty = &pat.ty;
+                let arg_ty = &pat.ty;
                 if arg_name == "env" {
                     // Create new variable name for the cloned environment as env_clone
                     arg_names.push(Ident::new("env_clone", arg_name.span()));
+                    arg_initializations.push(quote! {
+                        let #arg_name = Env::default();
+                    });
                     continue;
                 } else {
-                    arg_names.push(arg_name);
+                    arg_names.push(arg_name.clone());
+                    if !inited_vars.contains(&arg_name.clone()) {
+                        arg_initializations.push(quote! {
+                            let #arg_name = kani::any::<#arg_ty>();
+                        }); 
+                    }
                 }
             }
         }
@@ -129,6 +155,7 @@ pub fn verify(
         pub fn #proof_name() {
 
             // First: Initialize the environment and declare the variables
+            #(#arg_initializations)*
             #(#extracted_content)*
 
             // Clone the environment
