@@ -217,6 +217,12 @@ impl<const N: usize> BytesN<N> {
     }
 }
 
+impl From<BytesN<32>> for Bytes {
+    fn from(item: BytesN<32>) -> Self {
+        item.0
+    }
+}
+
 #[cfg(any(kani, feature = "kani"))]
 impl<const N: usize> kani::Arbitrary for BytesN<N> {
     fn any() -> Self {
