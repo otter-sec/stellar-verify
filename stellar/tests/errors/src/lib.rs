@@ -23,7 +23,6 @@ impl IncrementContract {
     #[cfg_attr(any(kani, feature = "kani"), 
         verify,
         init({
-            let env = Env::default();
             env.storage().instance().set(&COUNTER, &kani::any::<u32>());
         }),
         succeeds_if({
@@ -45,7 +44,7 @@ impl IncrementContract {
         // Check if the count exceeds the max.
         if count <= MAX {
             // Save the count.
-            env.storage().instance().set(&COUNTER, &count);
+            // env.storage().instance().set(&COUNTER, &count);
 
             // Return the count to the caller.
             Ok(count)

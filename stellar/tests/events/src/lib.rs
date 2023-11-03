@@ -12,14 +12,10 @@ impl IncrementContract {
     #[cfg_attr(any(kani, feature = "kani"),
         verify,
         init({
-            let env = Env::default();
             env.storage().instance().set(&COUNTER, &kani::any::<u32>());
         }),
         succeeds_if({
             env.storage().instance().get(&COUNTER).unwrap_or(0) < u32::MAX
-        }),
-        post_condition({
-            true
         })
     )]
     pub fn increment(env: Env) -> u32 {
