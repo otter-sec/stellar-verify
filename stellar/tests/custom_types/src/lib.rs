@@ -1,5 +1,4 @@
 #![no_std]
-use kani::Arbitrary;
 use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short, verify, Address, Env, Symbol,
 };
@@ -9,7 +8,7 @@ use alloc::vec::Vec;
 use soroban_sdk::{FromValEnum, ToValEnum, Val};
 
 #[contracttype]
-#[derive(Clone, Debug, Eq, PartialEq, Arbitrary)]
+#[derive(Clone, Debug, Eq, PartialEq, kani::Arbitrary)]
 pub struct State {
     pub count: u32,
     pub last_incr: u32,
