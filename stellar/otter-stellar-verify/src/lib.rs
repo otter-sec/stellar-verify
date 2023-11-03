@@ -6,6 +6,7 @@ pub mod deploy;
 pub mod env;
 pub mod events;
 pub mod ledger;
+pub mod map;
 pub mod storage;
 pub mod symbol;
 pub mod testutils;
