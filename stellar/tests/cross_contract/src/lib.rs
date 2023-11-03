@@ -11,21 +11,7 @@ pub struct ContractB;
 
 #[contractimpl]
 impl ContractB {
-    #[cfg_attr(any(kani, feature = "kani"), 
-        verify,
-        init({
-            let env = Env::default();
-            let contract = kani::any();
-            let x = kani::any();
-            let y = kani::any();
-        }),
-        succeeds_if({
-            true
-        }),
-        post_condition({
-            true
-        })
-    )]
+    #[cfg_attr(any(kani, feature = "kani"), verify)]
     pub fn add_with(env: Env, contract: Address, x: u32, y: u32) -> u32 {
         let client = contract_a::Client::new(&env, &contract);
 

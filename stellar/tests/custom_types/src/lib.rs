@@ -26,15 +26,10 @@ impl IncrementContract {
     #[cfg_attr(any(kani, feature = "kani"), 
         verify,
         init({
-            let env = Env::default();
-            let incr = kani::any();
             env.storage().instance().set(&STATE, &kani::any::<State>());
         }),
         succeeds_if({
-            Self::get_state(env.clone()).count <= u32::MAX - incr
-        }),
-        post_condition({
-            true
+            Self::get_state(env).count <= u32::MAX - incr
         })
     )]
     pub fn increment(env: Env, incr: u32) -> u32 {
