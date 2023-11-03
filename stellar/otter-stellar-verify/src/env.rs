@@ -1,5 +1,6 @@
 use crate::ledger::Ledger;
 use crate::Deployer;
+use crate::Prng;
 use crate::Val;
 use crate::{address::Address, events::Events, storage::Storage, token::MockToken};
 use std::{
@@ -64,6 +65,10 @@ impl Env {
 
     pub fn deployer(&self) -> Deployer {
         Deployer::new(self)
+    }
+
+    pub fn prng(&self) -> Prng {
+        Prng::new(self)
     }
 
     pub fn invoke_contract<T>(
