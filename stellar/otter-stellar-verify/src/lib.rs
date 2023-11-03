@@ -18,6 +18,7 @@ pub use {
     deploy::Deployer,
     env::{Env, IntoVal},
     events::Events,
+    map::Map,
     soroban_env_common::{
         symbol::Symbol, BytesObject, ConversionError, FromValEnum, String, Timepoint, ToValEnum,
         Val, Vec,
