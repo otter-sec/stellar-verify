@@ -1,4 +1,3 @@
-use crate::vec::fast::Vec;
 use crate::Env;
 use crate::FromValEnum;
 use crate::ToValEnum;
@@ -17,13 +16,13 @@ where
 
 impl<K, V> ToValEnum for Map<K, V>
 where
-    K: ToValEnum,
-    V: ToValEnum,
+    K: ToValEnum + PartialEq + Eq + PartialOrd + Ord,
+    V: ToValEnum + PartialEq + Eq + PartialOrd + Ord,
 {
     fn to_val(&self) -> Val {
         let map_val: Vec<(Val, Val)> = self
             .buckets
-            .into_iter()
+            .iter()
             .map(|(k, v)| (k.to_val(), v.to_val()))
             .collect();
 
@@ -31,10 +30,10 @@ where
     }
 }
 
-impl<K, V> FromVal for Map<K, V>
+impl<K, V> FromValEnum for Map<K, V>
 where
-    K: FromVal,
-    V: FromVal,
+    K: FromValEnum + PartialEq + Eq + PartialOrd + Ord,
+    V: FromValEnum + PartialEq + Eq + PartialOrd + Ord,
 {
     fn from_val(val: Val) -> Option<Self> {
         if let Val::MapVal(vec_val) = val {
@@ -55,20 +54,20 @@ where
 
 impl<K, V> Map<K, V>
 where
-    K: Copy + Default,
-    V: Copy + Default,
+    K: Copy + Default + PartialEq + Eq + PartialOrd + Ord,
+    V: Copy + Default + PartialEq + Eq + PartialOrd + Ord,
 {
     pub fn new(_env: &Env) -> Self {
         let buckets = Vec::with_capacity(CAPACITY);
         Map { buckets }
     }
 
-    pub fn env(&self) -> &Env {
-        &Env::default()
+    pub fn env(&self) -> Env {
+        Env::default()
     }
 
     pub fn from_array<const N: usize>(_env: &Env, items: [(K, V); N]) -> Map<K, V> {
-        let mut map = Map::<K, V>::new(env);
+        let mut map = Map::<K, V>::new(_env);
         for (k, v) in items {
             map.set(k, v);
         }
@@ -101,9 +100,9 @@ where
         None
     }
 
-    pub fn remove(&mut self, k: K) -> Option<()> {
-        if let Some(index) = self.buckets.iter().position(|(k, _)| k == key) {
-            let (_, v) = self.buckets.remove(index);
+    pub fn remove(&mut self, key: K) -> Option<()> {
+        if let Some(index) = self.buckets.iter().position(|(k, _)| *k == key) {
+            let (_, _) = self.buckets.remove(index);
             return Some(());
         } else {
             return None;
@@ -111,11 +110,11 @@ where
     }
 
     pub fn keys(&self) -> Vec<K> {
-        self.buckets.iter().map(|(k, _)| k).collect()
+        self.buckets.iter().map(|(k, _)| *k).collect()
     }
 
     pub fn values(&self) -> Vec<V> {
-        self.buckets.iter().map(|(_, v)| v).collect()
+        self.buckets.iter().map(|(_, v)| *v).collect()
     }
 
     pub fn is_empty(&self) -> bool {
@@ -127,12 +126,12 @@ where
     }
 }
 
-impl<K, V> Default for HashMap<K, V>
+impl<K, V> Default for Map<K, V>
 where
-    K: Eq + Copy + Default,
-    V: Copy + Default,
+    K: Copy + Default + PartialEq + Eq + PartialOrd + Ord,
+    V: Copy + Default + PartialEq + Eq + PartialOrd + Ord,
 {
     fn default() -> Self {
-        Self::new()
+        Self::new(&Env::default())
     }
 }
