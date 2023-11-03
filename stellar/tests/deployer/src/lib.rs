@@ -18,18 +18,8 @@ impl Deployer {
     #[cfg_attr(any(kani, feature = "kani"), 
         verify,
         init({
-            let env = Env::default();
-            let deployer = kani::any();
-            let wasm_hash = kani::any();
-            let salt = kani::any();
-            let init_fn = Symbol::new("init_fn");
+            let init_fn = Symbol::new_from_str("init_fn");
             let init_args = Vec::new();
-        }),
-        succeeds_if({
-            true
-        }),
-        post_condition({
-            true
         })
     )]
     pub fn deploy(
