@@ -395,7 +395,7 @@ fn generate_from_val_enum(data: &DataEnum, enum_name: &Ident) -> proc_macro2::To
                 let arm = match &variant.fields {
                     Fields::Unit => {
                         quote! {
-                            &symbol_short!(#variant_name) => Some(#enum_name::#variant_ident),
+                            #variant_name => Some(#enum_name::#variant_ident),
                         }
                     },
                     Fields::Named(_) => {
@@ -408,15 +408,19 @@ fn generate_from_val_enum(data: &DataEnum, enum_name: &Ident) -> proc_macro2::To
                         }
 
                     },
-                    Fields::Unnamed(fields) => {
-                        let typ = &fields.unnamed[0].ty;
+                    Fields::Unnamed(_) => {
                         quote! {
-                            &symbol_short!(#variant_name) => Some(#typ::from_val(vec[1].clone())),
+                            #variant_name => Some(#enum_name::#variant_ident(vec[1].clone().into())),
                         }
                     },
                 };
 
                 arms.extend(arm);
+                arms.extend(
+                    quote! {
+                        _ => None,
+                    }
+                )
             }
 
             quote!{
@@ -424,10 +428,12 @@ fn generate_from_val_enum(data: &DataEnum, enum_name: &Ident) -> proc_macro2::To
                     fn from_val(val: Val) -> Option<Self> {
                         match val {
                             Val::VecVal(vec) => match &vec[0] {
-                                Val::SymbolVal(sym) => match sym {
+                                Val::SymbolVal(sym) => match sym.to_string().as_str() {
                                     #arms
                                 }
+                                _ => None,
                             }
+                            _ => None,
                         }
                     }
                 }
