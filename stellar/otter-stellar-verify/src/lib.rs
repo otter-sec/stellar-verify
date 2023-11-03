@@ -7,6 +7,7 @@ pub mod env;
 pub mod events;
 pub mod ledger;
 pub mod map;
+pub mod prng;
 pub mod storage;
 pub mod symbol;
 pub mod testutils;
@@ -20,6 +21,7 @@ pub use {
     env::{Env, IntoVal},
     events::Events,
     map::Map,
+    prng::Prng,
     soroban_env_common::{
         symbol::Symbol, BytesObject, ConversionError, FromValEnum, String, Timepoint, ToValEnum,
         Val, Vec,
