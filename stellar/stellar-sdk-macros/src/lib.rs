@@ -13,7 +13,25 @@ pub fn contractimpl(
     _metadata: proc_macro::TokenStream,
     input: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    input
+    let mut item = parse_macro_input!(input as syn::ItemImpl);
+
+    let gen_fn = syn::parse2(quote! {
+        fn create_token_contract<'a>(e: &Env, admin: &Address) -> (TokenClient, TokenAdminClient) {
+            let contract_address = e.register_stellar_asset_contract(admin.clone());
+                (
+                    TokenClient::new(e, &contract_address),
+                    TokenAdminClient::new(e, &contract_address),
+                )
+            }
+    }).unwrap();
+
+    if let syn::ImplItem::Method(method) = gen_fn {
+        item.items.push(syn::ImplItem::Method(method));
+    }
+
+    quote! { 
+        #item 
+    }.into()
 }
 
 #[proc_macro_attribute]
@@ -103,14 +121,6 @@ pub fn verify(
     };
 
     quote! {
-
-        fn create_token_contract<'a>(e: &Env, admin: &Address) -> (TokenClient, TokenAdminClient) {
-        let contract_address = e.register_stellar_asset_contract(admin.clone());
-            (
-                TokenClient::new(e, &contract_address),
-                TokenAdminClient::new(e, &contract_address),
-            )
-        }
 
         #item_fn
 
