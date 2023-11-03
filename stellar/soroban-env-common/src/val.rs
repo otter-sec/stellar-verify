@@ -23,6 +23,7 @@ pub enum Val {
     Struct(Vec<u8>),
     VecVal(Vec<Val>),
     BytesNVal(Vec<u8>),
+    MapVal(Vec<(Val, Val)>),
 }
 
 impl Val {
