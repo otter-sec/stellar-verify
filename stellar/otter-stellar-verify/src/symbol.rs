@@ -7,7 +7,7 @@ trait SymbolExt {
 }
 
 impl SymbolExt for Symbol {
-    fn new(env: Env, sym: Symbol) -> Self {
+    fn new(_env: Env, sym: Symbol) -> Self {
         let mut bytes = [0; 10];
         let sym_bytes = sym.as_bytes();
         let mut n = 0;
