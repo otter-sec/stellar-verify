@@ -17,6 +17,7 @@ pub use {
     address::Address,
     auth::Context,
     bytes::{Bytes, BytesN},
+    crypto::Crypto,
     deploy::Deployer,
     env::{Env, IntoVal},
     events::Events,

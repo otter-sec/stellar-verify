@@ -1,4 +1,5 @@
 use crate::ledger::Ledger;
+use crate::Crypto;
 use crate::Deployer;
 use crate::Prng;
 use crate::Val;
@@ -61,6 +62,10 @@ impl Env {
                 val: CURRENT_CONTRACT,
             }
         }
+    }
+
+    pub fn crypto(&self) -> Crypto {
+        Crypto::new(self)
     }
 
     pub fn deployer(&self) -> Deployer {
