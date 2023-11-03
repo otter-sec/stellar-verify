@@ -1,13 +1,8 @@
+#[cfg(any(kani, feature = "kani"))]
 use core::ops::{Bound, RangeBounds};
 
 use crate::{Bytes, Env, ToValEnum, Val};
 
-/// Prng is a pseudo-random generator.
-///
-/// # Warning
-///
-/// **The PRNG is unsuitable for generating secrets or use in applications with
-/// low risk tolerance, see the module-level comment.**
 pub struct Prng {
     env: Env,
 }
