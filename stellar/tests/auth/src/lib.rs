@@ -8,43 +8,43 @@ use soroban_sdk::{symbol_short, FromValEnum, Symbol, ToValEnum, Val};
 extern crate alloc;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
-// #[contracttype]
+#[contracttype]
 pub enum DataKey {
     SignerCnt,
     ZeroVal,
     Counter(Address),
 }
 
-impl ToValEnum for DataKey {
-    fn to_val(&self) -> Val {
-        match self {
-            DataKey::SignerCnt => {
-                Val::VecVal(vec![Val::SymbolVal(Symbol::new_from_str("SignerCnt"))])
-            }
-            DataKey::ZeroVal => Val::VecVal(vec![Val::SymbolVal(Symbol::new_from_str("ZeroVal"))]),
-            DataKey::Counter(data) => Val::VecVal(vec![
-                Val::SymbolVal(Symbol::new_from_str("Counter")),
-                data.to_val(),
-            ]),
-        }
-    }
-}
-impl FromValEnum for DataKey {
-    fn from_val(val: Val) -> Option<Self> {
-        match val {
-            Val::VecVal(vec) => match &vec[0] {
-                Val::SymbolVal(sym) => match sym.to_string().as_str() {
-                    "SignerCnt" => Some(DataKey::SignerCnt),
-                    "ZeroVal" => Some(DataKey::ZeroVal),
-                    "Counter" => Some(DataKey::Counter(vec[1].clone().into())),
-                    _ => None,
-                },
-                _ => None,
-            },
-            _ => None,
-        }
-    }
-}
+// impl ToValEnum for DataKey {
+//     fn to_val(&self) -> Val {
+//         match self {
+//             DataKey::SignerCnt => {
+//                 Val::VecVal(vec![Val::SymbolVal(Symbol::new_from_str("SignerCnt"))])
+//             }
+//             DataKey::ZeroVal => Val::VecVal(vec![Val::SymbolVal(Symbol::new_from_str("ZeroVal"))]),
+//             DataKey::Counter(data) => Val::VecVal(vec![
+//                 Val::SymbolVal(Symbol::new_from_str("Counter")),
+//                 data.to_val(),
+//             ]),
+//         }
+//     }
+// }
+// impl FromValEnum for DataKey {
+//     fn from_val(val: Val) -> Option<Self> {
+//         match val {
+//             Val::VecVal(vec) => match &vec[0] {
+//                 Val::SymbolVal(sym) => match sym.to_string().as_str() {
+//                     "SignerCnt" => Some(DataKey::SignerCnt),
+//                     "ZeroVal" => Some(DataKey::ZeroVal),
+//                     "Counter" => Some(DataKey::Counter(vec[1].clone().into())),
+//                     _ => None,
+//                 },
+//                 _ => None,
+//             },
+//             _ => None,
+//         }
+//     }
+// }
 
 #[contract]
 pub struct IncrementContract;

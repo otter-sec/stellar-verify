@@ -416,12 +416,12 @@ fn generate_from_val_enum(data: &DataEnum, enum_name: &Ident) -> proc_macro2::To
                 };
 
                 arms.extend(arm);
-                arms.extend(
-                    quote! {
-                        _ => None,
-                    }
-                )
             }
+            arms.extend(
+                quote! {
+                    _ => None,
+                }
+            );
 
             quote!{
                 impl FromValEnum for #enum_name {
