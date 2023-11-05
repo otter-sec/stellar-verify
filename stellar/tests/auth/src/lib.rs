@@ -35,9 +35,7 @@ impl FromValEnum for DataKey {
             Val::VecVal(vec) => match &vec[0] {
                 Val::SymbolVal(sym) => match sym.to_string().as_str() {
                     "SignerCnt" => Some(DataKey::SignerCnt),
-                    _ => None,
                     "ZeroVal" => Some(DataKey::ZeroVal),
-                    _ => None,
                     "Counter" => Some(DataKey::Counter(vec[1].clone().into())),
                     _ => None,
                 },
@@ -65,11 +63,9 @@ impl IncrementContract {
             true
         }),
         post_condition({
-            // env.storage().instance().get::<_, u32>(&COUNTER).unwrap_or(0) == 0
-            true
-        }),
-    )]
-    pub fn increment(env: Env, user: Address, value: u32) -> u32 {
+            env.storage().persistent().get::<_, DataKey>(&DataKey::SignerCnt).unwrap_or(DataKey::SignerCnt) == DataKey::Counter(user)
+    }))]
+    pub fn increment(env: Env, user: Address) -> DataKey {
         // Requires `user` to have authorized call of the `increment` of this
         // contract with all the arguments passed to `increment`, i.e. `user`
         // and `value`. This will panic if auth fails for any reason.
@@ -92,23 +88,38 @@ impl IncrementContract {
         // Construct a key for the data being stored. Use an enum to set the
         // contract up well for adding other types of data to be stored.
         let key = DataKey::SignerCnt;
-        let value = DataKey::ZeroVal;
+        let counter = DataKey::Counter(user);
 
         // Save the count.
-        env.storage().persistent().set(&key, &value);
+        env.storage().persistent().set(&key, &counter);
 
         let return_value = env
             .storage()
             .persistent()
             .get(&key)
-            .unwrap_or(Val::VecVal(vec![Val::SymbolVal(Symbol::new_from_str(
-                "SignerCnt",
-            ))]));
+            .unwrap_or(DataKey::SignerCnt);
 
-        let val = DataKey::from_val(return_value).unwrap();
-        assert!(val == DataKey::ZeroVal);
+        return_value
+    }
+}
 
-        // Return the count to the caller.
-        0u32
+#[cfg(test)]
+mod test {
+    use core::panic;
+
+    use super::*;
+
+    #[test]
+    fn test_increment() {
+        let env = Env::default();
+        let user = Address::new(&env);
+        let hello = IncrementContract::increment(env.clone(), user);
+
+        match hello {
+            DataKey::Counter(data) => {
+                assert!(data == user)
+            }
+            _ => panic!("Failed"),
+        }
     }
 }
