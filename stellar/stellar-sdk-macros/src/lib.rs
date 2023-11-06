@@ -279,7 +279,7 @@ fn generate_serialize_code(
 fn generate_deserialize_code(
     fields: &syn::punctuated::Punctuated<syn::Field, syn::token::Comma>,
 ) -> proc_macro2::TokenStream {
-    let feild_names = fields.iter().map(|field| {
+    let field_names = fields.iter().map(|field| {
         let field_name = &field.ident;
         quote! {
             #field_name
@@ -311,7 +311,7 @@ fn generate_deserialize_code(
         pub fn deserialize(buf: &[u8]) -> Self {
             #( #field_deserialization_statements )*
             Self {
-                #( #feild_names ),*
+                #( #field_names ),*
             }
         }
     }
