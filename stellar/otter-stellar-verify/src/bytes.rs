@@ -156,6 +156,20 @@ impl<const N: usize> FromValEnum for BytesN<N> {
     }
 }
 
+impl<const N: usize> From<soroban_env_common::Val> for BytesN<N> {
+    fn from(val: crate::Val) -> Self {
+        if let crate::Val::BytesNVal(u) = val {
+            if u.len() == N {
+                BytesN(Bytes(u))
+            } else {
+                panic!("Error")
+            }
+        } else {
+            panic!("Error")
+        }
+    }
+}
+
 impl<const N: usize> BytesN<N> {
     // Create a new `BytesN` instance from an array of u8
     pub fn from_array(arr: &[u8; N]) -> Self {

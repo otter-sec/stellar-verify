@@ -3,7 +3,7 @@ use quote::{format_ident, quote, ToTokens};
 use soroban_env_common::symbol::Symbol;
 use syn::{
     parse_macro_input, Block, Data, DeriveInput, Error, Expr, Fields, FieldsNamed, FnArg, ItemFn,
-    LitStr, Pat, PatIdent,
+    LitStr, Pat, PatIdent, DataEnum,
 };
 
 const KANI_UNWIND: usize = 20;
@@ -240,7 +240,7 @@ pub fn contracttype(
                     };
 
                     return result.into();
-                }
+                },
                 Fields::Unnamed(_) => Error::new(
                     ident.span(),
                     "tuple structs are not supported as contract types",
@@ -252,17 +252,25 @@ pub fn contracttype(
                 )
                 .to_compile_error(),
             },
-            Data::Enum(_e) => Error::new(ident.span(), "enums are unsupported as contract types")
-                .to_compile_error(),
+            Data::Enum(enum_data) => {
+                let enum_name = &input.ident;
+                let to_val_enum_impl = generate_to_val_enum(enum_data, enum_name);
+                let from_val_enum_impl = generate_from_val_enum(enum_data, enum_name);
+
+                let expanded = quote! {
+                    #to_val_enum_impl
+
+                    #from_val_enum_impl
+                };
+                
+
+
+                expanded
+            },
             Data::Union(_u) => Error::new(ident.span(), "unions are unsupported as contract types")
                 .to_compile_error(),
         };
     quote! {
-        extern crate alloc;
-        use alloc::vec::Vec;
-
-        use soroban_sdk::{FromValEnum, ToValEnum, Val};
-
 
         #struct_in
 
@@ -308,7 +316,7 @@ fn generate_serialize_code(
 fn generate_deserialize_code(
     fields: &syn::punctuated::Punctuated<syn::Field, syn::token::Comma>,
 ) -> proc_macro2::TokenStream {
-    let feild_names = fields.iter().map(|field| {
+    let field_names = fields.iter().map(|field| {
         let field_name = &field.ident;
         quote! {
             #field_name
@@ -340,7 +348,7 @@ fn generate_deserialize_code(
         pub fn deserialize(buf: &[u8]) -> Self {
             #( #field_deserialization_statements )*
             Self {
-                #( #feild_names ),*
+                #( #field_names ),*
             }
         }
     }
@@ -363,6 +371,110 @@ fn generate_traits_for_structs(name:Ident) -> proc_macro2::TokenStream {
             }
         }
     }
-
-    
 }
+
+fn generate_to_val_enum(enum_data: &DataEnum, enum_name: &Ident) -> proc_macro2::TokenStream {
+            let variants = &enum_data.variants;
+            let mut arms = proc_macro2::TokenStream::new();
+
+            for variant in variants {
+                let variant_ident = &variant.ident;
+                let variant_name = variant_ident.to_string();
+
+                let arm = match &variant.fields {
+                    Fields::Unit => {
+                        quote! {
+                            #enum_name::#variant_ident => Val::VecVal(vec![Val::SymbolVal(symbol_short!(#variant_name))]),
+                        }
+                    },
+                    Fields::Named(_) => {
+                       quote! {
+                            Error::new(
+                                ident.span(),
+                                "named structs are not supported as contract types"
+                            )
+                            .to_compile_error()
+                        }
+                    },
+                    Fields::Unnamed(_) => {
+                        quote! {
+                            #enum_name::#variant_ident(data) => Val::VecVal(vec![
+                                Val::SymbolVal(symbol_short!(#variant_name)),
+                                data.to_val(),
+                            ]),
+                        }
+                    }
+                };
+
+                arms.extend(arm);
+            }
+
+            quote!{
+                impl ToValEnum for #enum_name {
+                    fn to_val(&self) -> Val {
+                        match self {
+                            #arms
+                        }
+                    }
+                }
+            }
+
+}
+
+fn generate_from_val_enum(data: &DataEnum, enum_name: &Ident) -> proc_macro2::TokenStream {
+    let variants = &data.variants;  
+            let mut arms = proc_macro2::TokenStream::new();
+
+            for variant in variants {
+                let variant_ident = &variant.ident;
+                let variant_name = variant_ident.to_string();
+
+                let arm = match &variant.fields {
+                    Fields::Unit => {
+                        quote! {
+                            #variant_name => Some(#enum_name::#variant_ident),
+                        }
+                    },
+                    Fields::Named(_) => {
+                        quote! {
+                            Error::new(
+                                ident.span(),
+                                "named structs are not supported as contract types"
+                            )
+                            .to_compile_error()
+                        }
+
+                    },
+                    Fields::Unnamed(_) => {
+                        quote! {
+                            #variant_name => Some(#enum_name::#variant_ident(vec[1].clone().into())),
+                        }
+                    },
+                };
+
+                arms.extend(arm);
+            }
+            arms.extend(
+                quote! {
+                    _ => None,
+                }
+            );
+
+            quote!{
+                impl FromValEnum for #enum_name {
+                    fn from_val(val: Val) -> Option<Self> {
+                        match val {
+                            Val::VecVal(vec) => match &vec[0] {
+                                Val::SymbolVal(sym) => match sym.to_string().as_str() {
+                                    #arms
+                                }
+                                _ => None,
+                            }
+                            _ => None,
+                        }
+                    }
+                }
+            }
+            
+}
+
