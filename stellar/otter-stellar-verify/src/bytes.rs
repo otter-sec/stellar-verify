@@ -128,11 +128,11 @@ impl kani::Arbitrary for Bytes {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct BytesN<const N: usize>(pub Bytes);
+pub struct BytesN<const N: usize>(pub [u8; N]);
 
 impl<const N: usize> Default for BytesN<N> {
     fn default() -> Self {
-        BytesN(Bytes(vec![0; N]))
+        BytesN([0; N])
     }
 }
 
@@ -146,7 +146,9 @@ impl<const N: usize> FromValEnum for BytesN<N> {
     fn from_val(val: crate::Val) -> Option<Self> {
         if let crate::Val::BytesNVal(u) = val {
             if u.len() == N {
-                Some(BytesN(Bytes(u)))
+                let mut arr = [0; N];
+                arr.copy_from_slice(&u);
+                Some(BytesN(arr))
             } else {
                 None
             }
@@ -160,7 +162,9 @@ impl<const N: usize> From<soroban_env_common::Val> for BytesN<N> {
     fn from(val: crate::Val) -> Self {
         if let crate::Val::BytesNVal(u) = val {
             if u.len() == N {
-                BytesN(Bytes(u))
+                let mut arr = [0; N];
+                arr.copy_from_slice(&u);
+                BytesN(arr)
             } else {
                 panic!("Error")
             }
@@ -173,33 +177,41 @@ impl<const N: usize> From<soroban_env_common::Val> for BytesN<N> {
 impl<const N: usize> BytesN<N> {
     // Create a new `BytesN` instance from an array of u8
     pub fn from_array(arr: &[u8; N]) -> Self {
-        Self(Bytes(arr.to_vec()))
+        Self(*arr)
     }
 
     pub fn to_le_bytes(&self) -> [u8; N] {
-        self.0.to_le_bytes().try_into().unwrap()
+        self.0
     }
 
     pub fn from_le_bytes(bytes: [u8; N]) -> Self {
-        Self(Bytes::from_le_bytes(bytes.to_vec()))
+        Self(bytes)
     }
 
     pub fn unchecked_new(env: Env, bytes: Vec<u8>) -> Self {
         let mut arr = [0; N];
         arr.copy_from_slice(&bytes);
-        Self(Bytes::new(env, bytes))
+        Self(arr)
     }
 
     pub fn set(&mut self, i: u32, v: u8) {
-        self.0.set(i, v);
+        if i < (N as u32) {
+            self.0[i as usize] = v;
+        } else {
+            panic!("OOB")
+        }
     }
 
     pub fn get(&self, i: u32) -> Option<u8> {
-        self.0.get(i)
+        if i < (N as u32) {
+            Some(self.0[i as usize])
+        } else {
+            None
+        }
     }
 
     pub fn get_unchecked(&self, i: u32) -> u8 {
-        self.0.get_unchecked(i)
+        self.0[i as usize]
     }
 
     pub fn is_empty(&self) -> bool {
@@ -211,19 +223,23 @@ impl<const N: usize> BytesN<N> {
     }
 
     pub fn first(&self) -> Option<u8> {
-        self.0.first()
+        Some(self.0[0])
     }
 
     pub fn first_unchecked(&self) -> u8 {
-        self.0.first_unchecked()
+        self.0[0]
     }
 
     pub fn last(&self) -> Option<u8> {
-        self.0.last()
+        if N >= 1 {
+            Some(self.0[N - 1])
+        } else {
+            None
+        }
     }
 
     pub fn last_unchecked(&self) -> u8 {
-        self.0.last_unchecked()
+        self.0[N - 1]
     }
 
     pub fn iter(&self) -> std::slice::Iter<u8> {
@@ -233,18 +249,18 @@ impl<const N: usize> BytesN<N> {
 
 impl From<BytesN<32>> for Bytes {
     fn from(item: BytesN<32>) -> Self {
-        item.0
+        Bytes(item.0.to_vec())
     }
 }
 
 #[cfg(any(kani, feature = "kani"))]
 impl<const N: usize> kani::Arbitrary for BytesN<N> {
     fn any() -> Self {
-        let mut v = Vec::new();
-        for _ in 0..N {
-            v.push(kani::any::<u8>());
+        let mut v = [0; N];
+        for i in 0..N {
+            v[i] = kani::any::<u8>();
         }
-        BytesN(Bytes(v))
+        BytesN(v)
     }
 }
 
