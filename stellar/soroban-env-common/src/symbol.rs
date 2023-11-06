@@ -110,6 +110,15 @@ impl ToValEnum for Symbol {
     }
 }
 
+#[cfg(feature = "kani")]
+impl kani::Arbitrary for Symbol {
+    fn any() -> Self {
+        let maybe_symbol = Symbol::try_from_bytes(&kani::any::<[u8; 10]>());
+        kani::assume(maybe_symbol.is_ok());
+        maybe_symbol.unwrap()
+    }
+}
+
 impl FromValEnum for Symbol {
     fn from_val(val: Val) -> Option<Symbol> {
         if let Val::SymbolVal(symbol) = val {
