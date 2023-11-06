@@ -188,7 +188,7 @@ impl<const N: usize> BytesN<N> {
         Self(bytes)
     }
 
-    pub fn unchecked_new(env: Env, bytes: Vec<u8>) -> Self {
+    pub fn unchecked_new(_env: Env, bytes: Vec<u8>) -> Self {
         let mut arr = [0; N];
         arr.copy_from_slice(&bytes);
         Self(arr)
