@@ -12,4 +12,4 @@ rand =  "0.8"
 
 [features]
 default = []
-kani = ["dep:kani"]
+kani = ["dep:kani", "soroban-env-common/kani" ]

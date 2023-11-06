@@ -103,9 +103,9 @@ where
     pub fn remove(&mut self, key: K) -> Option<()> {
         if let Some(index) = self.buckets.iter().position(|(k, _)| *k == key) {
             let (_, _) = self.buckets.remove(index);
-            return Some(());
+            Some(())
         } else {
-            return None;
+            None
         }
     }
 

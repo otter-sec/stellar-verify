@@ -258,13 +258,13 @@ impl<T: Default> From<std::vec::Vec<T>> for Vec<T> {
     }
 }
 
-// #[cfg(any(kani, feature = "kani"))]
-// impl<T: kani::Arbitrary + Default> kani::Arbitrary for Vec<T> {
-//     fn any() -> Self {
-//         let mut v = Vec::new();
-//         for _ in 0..kani::any::<u8>() % (VEC_SIZE as u8) {
-//             v.push(kani::any());
-//         }
-//         v
-//     }
-// }
+#[cfg(feature = "kani")]
+impl<T: kani::Arbitrary + Default> kani::Arbitrary for Vec<T> {
+    fn any() -> Self {
+        let mut v = Vec::new();
+        for _ in 0..kani::any::<u8>() % (VEC_SIZE as u8) {
+            v.push(kani::any());
+        }
+        v
+    }
+}

@@ -63,7 +63,7 @@ impl Bytes {
     }
 
     pub fn first_unchecked(&self) -> u8 {
-        *self.0.get(0).unwrap()
+        *self.0.first().unwrap()
     }
 
     pub fn last(&self) -> Option<u8> {

@@ -9,3 +9,7 @@ edition = "2021"
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true }
+kani = { workspace = true, optional = true }
+
+[features]
+kani = ["dep:kani"]
