@@ -1,7 +1,7 @@
 #![no_std]
 use alloc::string::ToString;
 use alloc::vec::Vec;
-use soroban_sdk::{contract, contractimpl, contracttype, verify, Address, Env};
+use soroban_sdk::{contract, contractimpl, contracttype, verify, Address, BytesN, Env};
 use soroban_sdk::{symbol_short, FromValEnum, Symbol, ToValEnum, Val};
 
 #[macro_use]
@@ -13,38 +13,8 @@ pub enum DataKey {
     SignerCnt,
     ZeroVal,
     Counter(Address),
+    Data(BytesN<32>),
 }
-
-// impl ToValEnum for DataKey {
-//     fn to_val(&self) -> Val {
-//         match self {
-//             DataKey::SignerCnt => {
-//                 Val::VecVal(vec![Val::SymbolVal(Symbol::new_from_str("SignerCnt"))])
-//             }
-//             DataKey::ZeroVal => Val::VecVal(vec![Val::SymbolVal(Symbol::new_from_str("ZeroVal"))]),
-//             DataKey::Counter(data) => Val::VecVal(vec![
-//                 Val::SymbolVal(Symbol::new_from_str("Counter")),
-//                 data.to_val(),
-//             ]),
-//         }
-//     }
-// }
-// impl FromValEnum for DataKey {
-//     fn from_val(val: Val) -> Option<Self> {
-//         match val {
-//             Val::VecVal(vec) => match &vec[0] {
-//                 Val::SymbolVal(sym) => match sym.to_string().as_str() {
-//                     "SignerCnt" => Some(DataKey::SignerCnt),
-//                     "ZeroVal" => Some(DataKey::ZeroVal),
-//                     "Counter" => Some(DataKey::Counter(vec[1].clone().into())),
-//                     _ => None,
-//                 },
-//                 _ => None,
-//             },
-//             _ => None,
-//         }
-//     }
-// }
 
 #[contract]
 pub struct IncrementContract;
@@ -57,15 +27,19 @@ impl IncrementContract {
         init({
             let env = Env::default();
             let user = Address::new(&env);
-            let value = 100;
+            let byte_data: BytesN<32> = BytesN::from_array(&[
+                1u8, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8,
+            ]);
         }),
         succeeds_if({
             true
         }),
         post_condition({
-            env.storage().persistent().get::<_, DataKey>(&DataKey::SignerCnt).unwrap_or(DataKey::SignerCnt) == DataKey::Counter(user)
+            env.storage().persistent().get::<_, DataKey>(&DataKey::Counter(user)).unwrap_or(DataKey::SignerCnt) == DataKey::Data(BytesN::from_array(&[
+                1u8, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8,
+            ]))
     }))]
-    pub fn increment(env: Env, user: Address) -> DataKey {
+    pub fn increment(env: Env, user: Address, byte_data: BytesN<32>) -> DataKey {
         // Requires `user` to have authorized call of the `increment` of this
         // contract with all the arguments passed to `increment`, i.e. `user`
         // and `value`. This will panic if auth fails for any reason.
@@ -87,11 +61,12 @@ impl IncrementContract {
 
         // Construct a key for the data being stored. Use an enum to set the
         // contract up well for adding other types of data to be stored.
-        let key = DataKey::SignerCnt;
-        let counter = DataKey::Counter(user);
+        // let key = DataKey::SignerCnt;
+        let key = DataKey::Counter(user);
+        let data = DataKey::Data(byte_data.clone());
 
         // Save the count.
-        env.storage().persistent().set(&key, &counter);
+        env.storage().persistent().set(&key, &data);
 
         let return_value = env
             .storage()
@@ -113,11 +88,15 @@ mod test {
     fn test_increment() {
         let env = Env::default();
         let user = Address::new(&env);
-        let hello = IncrementContract::increment(env.clone(), user);
+        let bydata: BytesN<32> = BytesN::from_array(&[
+            1u8, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4,
+            5, 6, 7, 8,
+        ]);
+        let hello = IncrementContract::increment(env.clone(), user, bydata.clone());
 
         match hello {
-            DataKey::Counter(data) => {
-                assert!(data == user)
+            DataKey::Data(data) => {
+                assert!(data == bydata)
             }
             _ => panic!("Failed"),
         }

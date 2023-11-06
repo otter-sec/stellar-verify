@@ -1,4 +1,4 @@
-use proc_macro2::{Ident, TokenStream, Span};
+use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use soroban_env_common::symbol::Symbol;
 use syn::{
