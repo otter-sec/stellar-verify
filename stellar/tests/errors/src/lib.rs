@@ -44,7 +44,7 @@ impl IncrementContract {
         // Check if the count exceeds the max.
         if count <= MAX {
             // Save the count.
-            // env.storage().instance().set(&COUNTER, &count);
+            env.storage().instance().set(&COUNTER, &count);
 
             // Return the count to the caller.
             Ok(count)

@@ -36,7 +36,7 @@ impl PersistentStorage {
         K: ToValEnum,
         V: FromValEnum,
     {
-        let matched = self.storage.iter().find(|(k, _)| k == &key.to_val());
+        let matched = self.storage.iter().find(|(k, _)| *k == key.to_val());
         if let Some((_, v)) = matched {
             V::from_val(v.clone())
         } else {
@@ -49,14 +49,23 @@ impl PersistentStorage {
         K: ToValEnum,
         V: ToValEnum,
     {
-        self.storage.push((key.to_val(), val.to_val())); // Convert key and val to ValEnum
+        let exists = self.storage.iter().position(|(k, _)| *k == key.to_val());
+
+        match exists {
+            Some(index) => {
+                self.storage[index].1 = val.to_val();
+            }
+            None => {
+                self.storage.push((key.to_val(), val.to_val()));
+            }
+        }
     }
 
     pub fn has<K>(&self, key: &K) -> bool
     where
         K: ToValEnum,
     {
-        self.storage.iter().any(|(k, _)| k == &key.to_val())
+        self.storage.iter().any(|(k, _)| *k == key.to_val())
     }
 
     pub fn bump<K>(&self, _: K, _: u32, _: u32) {}
@@ -68,7 +77,7 @@ impl TemporaryStorage {
         K: ToValEnum,
         V: FromValEnum,
     {
-        let matched = self.storage.iter().find(|(k, _)| k == &key.to_val());
+        let matched = self.storage.iter().find(|(k, _)| *k == key.to_val());
         if let Some((_, v)) = matched {
             V::from_val(v.clone())
         } else {
@@ -81,14 +90,23 @@ impl TemporaryStorage {
         K: ToValEnum,
         V: ToValEnum,
     {
-        self.storage.push((key.to_val(), val.to_val())); // Convert key and val to ValEnum
+        let exists = self.storage.iter().position(|(k, _)| *k == key.to_val());
+
+        match exists {
+            Some(index) => {
+                self.storage[index].1 = val.to_val();
+            }
+            None => {
+                self.storage.push((key.to_val(), val.to_val()));
+            }
+        }
     }
 
     pub fn has<K>(&self, key: &K) -> bool
     where
         K: ToValEnum,
     {
-        self.storage.iter().any(|(k, _)| k == &key.to_val())
+        self.storage.iter().any(|(k, _)| *k == key.to_val())
     }
 
     pub fn bump<K>(&self, _: K, _: u32, _: u32) {}
@@ -100,7 +118,7 @@ impl InstanceStorage {
         K: ToValEnum,
         V: FromValEnum,
     {
-        let matched = self.storage.iter().find(|(k, _)| k == &key.to_val());
+        let matched = self.storage.iter().find(|(k, _)| *k == key.to_val());
         if let Some((_, v)) = matched {
             V::from_val(v.clone())
         } else {
@@ -113,14 +131,23 @@ impl InstanceStorage {
         K: ToValEnum,
         V: ToValEnum,
     {
-        self.storage.push((key.to_val(), val.to_val())); // Convert key and val to ValEnum
+        let exists = self.storage.iter().position(|(k, _)| *k == key.to_val());
+
+        match exists {
+            Some(index) => {
+                self.storage[index].1 = val.to_val();
+            }
+            None => {
+                self.storage.push((key.to_val(), val.to_val()));
+            }
+        }
     }
 
     pub fn has<K>(&self, key: &K) -> bool
     where
         K: ToValEnum,
     {
-        self.storage.iter().any(|(k, _)| k == &key.to_val())
+        self.storage.iter().any(|(k, _)| *k == key.to_val())
     }
 
     pub fn bump(&self, _: u32, _: u32) {}
