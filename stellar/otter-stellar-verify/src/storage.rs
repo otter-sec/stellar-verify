@@ -36,7 +36,7 @@ impl PersistentStorage {
         K: ToValEnum,
         V: FromValEnum,
     {
-        let matched = self.storage.iter().find(|(k, _)| k == &key.to_val());
+        let matched = self.storage.iter().find(|(k, _)| *k == key.to_val());
         if let Some((_, v)) = matched {
             V::from_val(v.clone())
         } else {
@@ -49,7 +49,7 @@ impl PersistentStorage {
         K: ToValEnum,
         V: ToValEnum,
     {
-        let exists = self.storage.iter().position(|(k, _)| k == &key.to_val());
+        let exists = self.storage.iter().position(|(k, _)| *k == key.to_val());
 
         match exists {
             Some(index) => {
@@ -77,7 +77,7 @@ impl TemporaryStorage {
         K: ToValEnum,
         V: FromValEnum,
     {
-        let matched = self.storage.iter().find(|(k, _)| k == &key.to_val());
+        let matched = self.storage.iter().find(|(k, _)| *k == key.to_val());
         if let Some((_, v)) = matched {
             V::from_val(v.clone())
         } else {
@@ -90,7 +90,7 @@ impl TemporaryStorage {
         K: ToValEnum,
         V: ToValEnum,
     {
-        let exists = self.storage.iter().position(|(k, _)| k == &key.to_val());
+        let exists = self.storage.iter().position(|(k, _)| *k == key.to_val());
 
         match exists {
             Some(index) => {
@@ -118,7 +118,7 @@ impl InstanceStorage {
         K: ToValEnum,
         V: FromValEnum,
     {
-        let matched = self.storage.iter().find(|(k, _)| k == &key.to_val());
+        let matched = self.storage.iter().find(|(k, _)| *k == key.to_val());
         if let Some((_, v)) = matched {
             V::from_val(v.clone())
         } else {
@@ -131,7 +131,7 @@ impl InstanceStorage {
         K: ToValEnum,
         V: ToValEnum,
     {
-        let exists = self.storage.iter().position(|(k, _)| k == &key.to_val());
+        let exists = self.storage.iter().position(|(k, _)| *k == key.to_val());
 
         match exists {
             Some(index) => {
