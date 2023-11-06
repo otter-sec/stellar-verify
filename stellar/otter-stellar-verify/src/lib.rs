@@ -61,7 +61,7 @@ macro_rules! contractimport {
         pub struct Client {}
 
         impl Client {
-            pub fn new(_env: &crate::Env, _contract: &crate::Address) -> Self {
+            pub fn new(_env: $crate::Env, _contract: $crate::Address) -> Self {
                 Self {}
             }
         }
