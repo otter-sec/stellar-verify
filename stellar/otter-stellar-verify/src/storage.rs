@@ -65,7 +65,7 @@ impl PersistentStorage {
     where
         K: ToValEnum,
     {
-        self.storage.iter().any(|(k, _)| k == &key.to_val())
+        self.storage.iter().any(|(k, _)| *k == key.to_val())
     }
 
     pub fn bump<K>(&self, _: K, _: u32, _: u32) {}
@@ -106,7 +106,7 @@ impl TemporaryStorage {
     where
         K: ToValEnum,
     {
-        self.storage.iter().any(|(k, _)| k == &key.to_val())
+        self.storage.iter().any(|(k, _)| *k == key.to_val())
     }
 
     pub fn bump<K>(&self, _: K, _: u32, _: u32) {}
@@ -142,11 +142,12 @@ impl InstanceStorage {
             }
         }
     }
+
     pub fn has<K>(&self, key: &K) -> bool
     where
         K: ToValEnum,
     {
-        self.storage.iter().any(|(k, _)| k == &key.to_val())
+        self.storage.iter().any(|(k, _)| *k == key.to_val())
     }
 
     pub fn bump(&self, _: u32, _: u32) {}
