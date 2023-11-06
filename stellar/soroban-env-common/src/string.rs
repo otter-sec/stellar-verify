@@ -76,6 +76,13 @@ impl FromValEnum for crate::String {
     }
 }
 
+#[cfg(feature = "kani")]
+impl kani::Arbitrary for crate::String {
+    fn any() -> Self {
+        crate::String(kani::any::<[u8; 10]>())
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::{FromValEnum, ToValEnum};
