@@ -8,12 +8,54 @@ use soroban_sdk::{symbol_short, FromValEnum, Symbol, ToValEnum, Val};
 extern crate alloc;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
-#[contracttype]
+// #[contracttype]
 pub enum DataKey {
     SignerCnt,
     ZeroVal,
     Counter(Address),
     Data(BytesN<32>),
+}
+
+impl ToValEnum for DataKey {
+    fn to_val(&self) -> Val {
+        match self {
+            DataKey::ZeroVal => Val::EnumVal(soroban_sdk::EnumType {
+                variant: symbol_short!("ZeroVal"),
+                value: None,
+            }),
+            DataKey::SignerCnt => Val::EnumVal(soroban_sdk::EnumType {
+                variant: symbol_short!("SignerCnt"),
+                value: None,
+            }),
+            DataKey::Counter(data) => Val::EnumVal(soroban_sdk::EnumType {
+                variant: symbol_short!("Counter"),
+                value: Some(alloc::boxed::Box::new(data.to_val())),
+            }),
+            DataKey::Data(data) => Val::EnumVal(soroban_sdk::EnumType {
+                variant: symbol_short!("Data"),
+                value: Some(alloc::boxed::Box::new(data.to_val())),
+            }),
+        }
+    }
+}
+
+impl FromValEnum for DataKey {
+    fn from_val(val: Val) -> Option<Self> {
+        match val {
+            Val::EnumVal(enumval) => match enumval.variant.as_str() {
+                "SignerCnt" => Some(DataKey::SignerCnt),
+                "ZeroVal" => Some(DataKey::ZeroVal),
+                "Counter" => Some(DataKey::Counter(Address::from_val(
+                    *enumval.value.unwrap(),
+                )?)),
+                "Data" => Some(DataKey::Data(BytesN::<32>::from_val(
+                    *enumval.value.unwrap(),
+                )?)),
+                _ => None,
+            },
+            _ => None,
+        }
+    }
 }
 
 #[contract]
