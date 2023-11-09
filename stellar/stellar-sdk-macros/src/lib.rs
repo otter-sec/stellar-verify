@@ -42,7 +42,7 @@ pub fn contract(
     let input: TokenStream = input.into();
     quote! {
         use soroban_sdk::{
-            token::AdminClient as TokenAdminClient, token::Client as TokenClient
+            token::AdminClient as TokenAdminClient, token::Client as TokenClient, verify
         };
         #input
     }
@@ -189,7 +189,7 @@ pub fn symbol_short(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
     match Symbol::try_from_bytes(symbol_str.as_bytes()) {
         Ok(_) => quote! {
-            Symbol::new_from_str(#symbol_str)
+            soroban_sdk::Symbol::new_from_str(#symbol_str)
         }
         .into(),
         Err(e) => Error::new(input.span(), format!("{e}"))
@@ -356,18 +356,18 @@ fn generate_deserialize_code(
 
 fn generate_traits_for_structs(name:Ident) -> proc_macro2::TokenStream {
     quote! {
-        impl FromValEnum for #name {
+        impl soroban_sdk::FromValEnum for #name {
             fn from_val(val: soroban_sdk::Val) -> Option<Self> {
                 match val {
-                    Val::Struct(bytes) => Some(Self::deserialize(&bytes)),
+                    soroban_sdk::Val::Struct(bytes) => Some(Self::deserialize(&bytes)),
                     _ => None,
                 }
             }
         }
 
-        impl ToValEnum for #name {
-            fn to_val(&self) -> Val {
-                Val::Struct(self.serialize())
+        impl soroban_sdk::ToValEnum for #name {
+            fn to_val(&self) -> soroban_sdk::Val {
+                soroban_sdk::Val::Struct(self.serialize())
             }
         }
     }
@@ -384,7 +384,9 @@ fn generate_to_val_enum(enum_data: &DataEnum, enum_name: &Ident) -> proc_macro2:
                 let arm = match &variant.fields {
                     Fields::Unit => {
                         quote! {
-                            #enum_name::#variant_ident => Val::VecVal(vec![Val::SymbolVal(symbol_short!(#variant_name))]),
+                            #enum_name::#variant_ident => soroban_sdk::Val::VecVal(
+                                vec![soroban_sdk::Val::SymbolVal(soroban_sdk::symbol_short!(#variant_name))]
+                            ),
                         }
                     },
                     Fields::Named(_) => {
@@ -398,8 +400,8 @@ fn generate_to_val_enum(enum_data: &DataEnum, enum_name: &Ident) -> proc_macro2:
                     },
                     Fields::Unnamed(_) => {
                         quote! {
-                            #enum_name::#variant_ident(data) => Val::VecVal(vec![
-                                Val::SymbolVal(symbol_short!(#variant_name)),
+                            #enum_name::#variant_ident(data) => soroban_sdk::Val::VecVal(vec![
+                                soroban_sdk::Val::SymbolVal(soroban_sdk::symbol_short!(#variant_name)),
                                 data.to_val(),
                             ]),
                         }
@@ -410,8 +412,8 @@ fn generate_to_val_enum(enum_data: &DataEnum, enum_name: &Ident) -> proc_macro2:
             }
 
             quote!{
-                impl ToValEnum for #enum_name {
-                    fn to_val(&self) -> Val {
+                impl soroban_sdk::ToValEnum for #enum_name {
+                    fn to_val(&self) -> soroban_sdk::Val {
                         match self {
                             #arms
                         }
@@ -461,11 +463,11 @@ fn generate_from_val_enum(data: &DataEnum, enum_name: &Ident) -> proc_macro2::To
             );
 
             quote!{
-                impl FromValEnum for #enum_name {
-                    fn from_val(val: Val) -> Option<Self> {
+                impl soroban_sdk::FromValEnum for #enum_name {
+                    fn from_val(val: soroban_sdk::Val) -> Option<Self> {
                         match val {
-                            Val::VecVal(vec) => match &vec[0] {
-                                Val::SymbolVal(sym) => match sym.to_string().as_str() {
+                            soroban_sdk::Val::VecVal(vec) => match &vec[0] {
+                                soroban_sdk::Val::SymbolVal(sym) => match sym.to_string().as_str() {
                                     #arms
                                 }
                                 _ => None,
