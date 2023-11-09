@@ -21,19 +21,19 @@ impl ToValEnum for DataKey {
         match self {
             DataKey::ZeroVal => Val::EnumVal(soroban_sdk::EnumType {
                 variant: symbol_short!("ZeroVal"),
-                value: None,
+                value: Vec::new().into(),
             }),
             DataKey::SignerCnt => Val::EnumVal(soroban_sdk::EnumType {
                 variant: symbol_short!("SignerCnt"),
-                value: None,
+                value: Vec::new().into(),
             }),
             DataKey::Counter(data) => Val::EnumVal(soroban_sdk::EnumType {
                 variant: symbol_short!("Counter"),
-                value: Some(alloc::boxed::Box::new(data.to_val())),
+                value: data.to_le_bytes().to_vec().into(),
             }),
             DataKey::Data(data) => Val::EnumVal(soroban_sdk::EnumType {
                 variant: symbol_short!("Data"),
-                value: Some(alloc::boxed::Box::new(data.to_val())),
+                value: data.to_le_bytes().to_vec().into(),
             }),
         }
     }
@@ -41,19 +41,21 @@ impl ToValEnum for DataKey {
 
 impl FromValEnum for DataKey {
     fn from_val(val: Val) -> Option<Self> {
-        match val {
-            Val::EnumVal(enumval) => match enumval.variant.as_str() {
+        // kani::assume(matches!(val, Val::EnumVal { .. }));
+        if let Val::EnumVal(enumval) = val {
+            match enumval.variant.as_str() {
                 "SignerCnt" => Some(DataKey::SignerCnt),
                 "ZeroVal" => Some(DataKey::ZeroVal),
-                "Counter" => Some(DataKey::Counter(Address::from_val(
-                    *enumval.value.unwrap(),
-                )?)),
-                "Data" => Some(DataKey::Data(BytesN::<32>::from_val(
-                    *enumval.value.unwrap(),
-                )?)),
+                "Counter" => Some(DataKey::Counter(Address::from_le_bytes(
+                    enumval.value[0..1].try_into().unwrap(),
+                ))),
+                "Data" => Some(DataKey::Data(BytesN::<32>::from_le_bytes(
+                    enumval.value[0..10].try_into().unwrap(),
+                ))),
                 _ => None,
-            },
-            _ => None,
+            }
+        } else {
+            None
         }
     }
 }
@@ -103,7 +105,6 @@ impl IncrementContract {
 
         // Construct a key for the data being stored. Use an enum to set the
         // contract up well for adding other types of data to be stored.
-        // let key = DataKey::SignerCnt;
         let key = DataKey::Counter(user);
         let data = DataKey::Data(byte_data.clone());
 
