@@ -1,6 +1,6 @@
 #![no_std]
 
-use soroban_sdk::{contract, contractimpl, verify, Address, Env};
+use soroban_sdk::{contract, contractimpl, Address, Env};
 
 mod contract_a {
     soroban_sdk::contractimport!(file = "./soroban_cross_contract_a_contract.wasm");
