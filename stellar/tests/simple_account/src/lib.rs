@@ -4,7 +4,7 @@
 struct SimpleAccount;
 
 use soroban_sdk::{
-    auth::Context, contract, contractimpl, symbol_short, verify, Address, BytesN, Env, Symbol, Vec,
+    auth::Context, contract, contractimpl, symbol_short, Address, BytesN, Env, Symbol, Vec,
 };
 
 const ADMIN: Symbol = symbol_short!("ADMIN");
