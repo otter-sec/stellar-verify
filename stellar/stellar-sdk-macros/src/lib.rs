@@ -1,3 +1,4 @@
+use darling::{ast::NestedMeta, FromMeta};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use soroban_env_common::symbol::Symbol;
@@ -202,6 +203,54 @@ pub fn symbol_short(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 pub fn contractmeta(metadata: proc_macro::TokenStream) -> proc_macro::TokenStream {
     metadata
 }
+
+#[derive(Debug, FromMeta)]
+struct ContractImportArgs {
+    file: String,
+}
+
+#[proc_macro]
+pub fn contractimport(metadata: proc_macro::TokenStream) -> proc_macro::TokenStream {
+        let args = match NestedMeta::parse_meta_list(metadata.into()) {
+            Ok(v) => v,
+            Err(e) => {
+                return proc_macro::TokenStream::from(darling::Error::from(e).write_errors());
+            }
+        };
+
+        let args = match ContractImportArgs::from_list(&args) {
+            Ok(v) => v,
+            Err(e) => return e.write_errors().into(),
+        };
+    
+        // Read WASM from file.
+        let file_abs = abs_from_rel_to_manifest(&args.file);
+        let wasm = match std::fs::read(file_abs) {
+            Ok(wasm) => wasm,
+            Err(e) => {
+                return Error::new(proc_macro2::Span::call_site(), e.to_string())
+                    .into_compile_error()
+                    .into()
+            }
+        };
+    
+        // Generate.
+        // match generate_from_wasm(&wasm, &args.file) {
+        //     Ok(code) => quote! { #code },
+        //     Err(e) => Error::new(proc_macro2::Span::call_site(), e.to_string()).into_compile_error(),
+        // }
+        // .into()
+        quote! {
+            pub struct Client {}
+
+            impl Client {
+                pub fn new(_env: &soroban_sdk::Env, _contract: &soroban_sdk::Address) -> Self {
+                    Self {}
+                }
+            }
+        }.into()
+    }
+
 
 #[proc_macro_attribute]
 pub fn contracttype(
@@ -480,3 +529,17 @@ fn generate_from_val_enum(data: &DataEnum, enum_name: &Ident) -> proc_macro2::To
             
 }
 
+
+
+
+fn abs_from_rel_to_manifest(path: impl Into<std::path::PathBuf>) -> std::path::PathBuf {
+    let path: std::path::PathBuf = path.into();
+    if path.is_relative() {
+        let root: std::path::PathBuf = std::env::var("CARGO_MANIFEST_DIR")
+            .expect("CARGO_MANIFEST_DIR environment variable is required to be set")
+            .into();
+        root.join(path)
+    } else {
+        path
+    }
+}
