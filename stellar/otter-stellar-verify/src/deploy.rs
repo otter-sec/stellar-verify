@@ -77,7 +77,7 @@ impl DeployerWithAddress {
 
 pub struct DeployerWithAsset {
     _env: Env,
-    address: Address
+    address: Address,
     _serialized_asset: Bytes,
 }
 
