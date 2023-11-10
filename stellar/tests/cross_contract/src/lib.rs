@@ -15,13 +15,6 @@ impl ContractB {
     pub fn add_with(env: Env, contract: Address, x: u32, y: u32) -> u32 {
         let client = contract_a::Client::new(&env, &contract);
 
-        #[cfg(not(any(kani, feature = "kani")))]
-        {
-            client.add(&x, &y)
-        }
-        #[cfg(any(kani, feature = "kani"))]
-        {
-            kani::any::<u32>()
-        }
+        client.add(&x, &y)
     }
 }
