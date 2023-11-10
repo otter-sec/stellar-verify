@@ -6,6 +6,7 @@ use syn::{
     parse_macro_input, Block, Data, DeriveInput, Error, Expr, Fields, FieldsNamed, FnArg, ItemFn,
     LitStr, Pat, PatIdent, DataEnum,
 };
+use soroban_rs_spec::generate_from_file;
 
 const KANI_UNWIND: usize = 20;
 
@@ -225,30 +226,29 @@ pub fn contractimport(metadata: proc_macro::TokenStream) -> proc_macro::TokenStr
     
         // Read WASM from file.
         let file_abs = abs_from_rel_to_manifest(&args.file);
-        let wasm = match std::fs::read(file_abs) {
-            Ok(wasm) => wasm,
-            Err(e) => {
-                return Error::new(proc_macro2::Span::call_site(), e.to_string())
-                    .into_compile_error()
-                    .into()
-            }
-        };
     
         // Generate.
-        // match generate_from_wasm(&wasm, &args.file) {
-        //     Ok(code) => quote! { #code },
-        //     Err(e) => Error::new(proc_macro2::Span::call_site(), e.to_string()).into_compile_error(),
-        // }
-        // .into()
-        quote! {
-            pub struct Client {}
-
-            impl Client {
-                pub fn new(_env: &soroban_sdk::Env, _contract: &soroban_sdk::Address) -> Self {
-                    Self {}
+        match generate_from_file(&file_abs.to_str().unwrap()) {
+            Ok(code) => quote! { 
+                pub struct Client {
+                    pub env: soroban_sdk::Env,
+                    pub address: soroban_sdk::Address,
                 }
-            }
-        }.into()
+
+                impl Client {
+                    pub fn new(env: &soroban_sdk::Env, address: &soroban_sdk::Address) -> Self {
+                        Self {
+                            env : env.clone(),
+                            address: address.clone()
+                        }
+                    }
+                }
+                #code 
+            },
+            Err(e) => Error::new(proc_macro2::Span::call_site(), e.to_string()).into_compile_error(),
+        }
+        .into()
+
     }
 
 
