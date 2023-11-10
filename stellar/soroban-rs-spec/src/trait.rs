@@ -24,7 +24,14 @@ pub fn generate_trait(_name: &str, specs: &[&ScSpecFunctionV0]) -> TokenStream {
                 .map(|t| quote! { -> #t });
 
             let fn_implementation = quote! {
-                kani::any()
+                #[cfg(kani)]
+                {
+                    kani::any()
+                }
+                #[cfg(not(kani))]
+                {
+                    Default::default()
+                }
             };
 
             quote! {
@@ -36,7 +43,6 @@ pub fn generate_trait(_name: &str, specs: &[&ScSpecFunctionV0]) -> TokenStream {
         .collect();
 
     quote! {
-
         impl Client {
             #(#fns)*
         }
