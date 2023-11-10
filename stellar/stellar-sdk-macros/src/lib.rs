@@ -206,6 +206,7 @@ pub fn contractmeta(metadata: proc_macro::TokenStream) -> proc_macro::TokenStrea
 }
 
 #[derive(Debug, FromMeta)]
+#[allow(dead_code)]
 struct ContractImportArgs {
     file: String,
     #[darling(default)]
