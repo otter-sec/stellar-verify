@@ -208,6 +208,8 @@ pub fn contractmeta(metadata: proc_macro::TokenStream) -> proc_macro::TokenStrea
 #[derive(Debug, FromMeta)]
 struct ContractImportArgs {
     file: String,
+    #[darling(default)]
+    sha256: darling::util::SpannedValue<Option<String>>,
 }
 
 #[proc_macro]
