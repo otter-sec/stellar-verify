@@ -228,10 +228,10 @@ pub fn contractimport(metadata: proc_macro::TokenStream) -> proc_macro::TokenStr
         };
     
         // Read WASM from file.
-        let file_abs = abs_from_rel_to_manifest(&args.file);
+        let file_abs = abs_from_rel_to_manifest(args.file);
     
         // Generate.
-        match generate_from_file(&file_abs.to_str().unwrap()) {
+        match generate_from_file(file_abs.to_str().unwrap()) {
             Ok(code) => quote! { 
                 pub struct Client {
                     pub env: soroban_sdk::Env,
