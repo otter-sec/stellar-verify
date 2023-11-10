@@ -26,7 +26,7 @@ impl Deployer {
 
     pub fn with_address(
         &self,
-        address: Address,
+        _address: Address,
         salt: impl IntoVal<Env, BytesN<32>>,
     ) -> DeployerWithAddress {
         DeployerWithAddress {
