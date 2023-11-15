@@ -1,6 +1,6 @@
 #![no_std]
 
-use soroban_sdk::{contract, contractimpl, verify, Address, BytesN, Env, Symbol, Val, Vec};
+use soroban_sdk::{contract, contractimpl, Address, BytesN, Env, Symbol, Val, Vec};
 
 #[contract]
 pub struct Deployer;

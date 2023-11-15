@@ -1,14 +1,11 @@
 #![no_std]
-use soroban_sdk::{
-    contract, contractimpl, contracttype, symbol_short, verify, Address, Env, Symbol,
-};
+use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol};
 extern crate alloc;
 use alloc::vec::Vec;
 
-use soroban_sdk::{FromValEnum, ToValEnum, Val};
-
 #[contracttype]
-#[derive(Clone, Debug, Eq, PartialEq, kani::Arbitrary)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(kani, derive(kani::Arbitrary))]
 pub struct State {
     pub count: u32,
     pub last_incr: u32,

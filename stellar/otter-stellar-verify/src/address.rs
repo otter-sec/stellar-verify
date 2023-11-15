@@ -9,6 +9,15 @@ pub struct Address {
     pub val: u8,
 }
 
+impl From<soroban_env_common::Val> for Address {
+    fn from(val: soroban_env_common::Val) -> Self {
+        match val {
+            soroban_env_common::Val::AddressObj(address) => Address { val: address as u8 },
+            _ => panic!("Error"),
+        }
+    }
+}
+
 impl Display for Address {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "(Address {})", self.val)

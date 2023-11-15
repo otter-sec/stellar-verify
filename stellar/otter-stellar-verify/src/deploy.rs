@@ -19,19 +19,19 @@ impl Deployer {
     ) -> DeployerWithAddress {
         DeployerWithAddress {
             _env: self.env.clone(),
-            _address: self.env.current_contract_address(),
+            address: Address::new(&self.env),
             _salt: salt.into_val(&self.env),
         }
     }
 
     pub fn with_address(
         &self,
-        address: Address,
+        _address: Address,
         salt: impl IntoVal<Env, BytesN<32>>,
     ) -> DeployerWithAddress {
         DeployerWithAddress {
             _env: self.env.clone(),
-            _address: address,
+            address: Address::new(&self.env),
             _salt: salt.into_val(&self.env),
         }
     }
@@ -42,6 +42,7 @@ impl Deployer {
     ) -> DeployerWithAsset {
         DeployerWithAsset {
             _env: self.env.clone(),
+            address: Address::new(&self.env),
             _serialized_asset: serialized_asset.into_val(&self.env),
         }
     }
@@ -60,55 +61,32 @@ impl Deployer {
 
 pub struct DeployerWithAddress {
     _env: Env,
-    _address: Address,
+    address: Address,
     _salt: BytesN<32>,
 }
 
 impl DeployerWithAddress {
-    #[cfg(kani)]
     pub fn deployed_address(&self) -> Address {
-        kani::any()
+        self.address
     }
 
-    #[cfg(not(kani))]
-    pub fn deployed_address(&self) -> Address {
-        Address::default()
-    }
-
-    #[cfg(kani)]
     pub fn deploy(&self, _wasm_hash: impl IntoVal<Env, BytesN<32>>) -> Address {
-        kani::any()
-    }
-
-    #[cfg(not(kani))]
-    pub fn deploy(&self, _wasm_hash: impl IntoVal<Env, BytesN<32>>) -> Address {
-        Address::default()
+        self.address
     }
 }
 
 pub struct DeployerWithAsset {
     _env: Env,
+    address: Address,
     _serialized_asset: Bytes,
 }
 
-#[cfg(kani)]
 impl DeployerWithAsset {
     pub fn deployed_address(&self) -> Address {
-        kani::any()
+        self.address
     }
 
     pub fn deploy(&self) -> Address {
-        kani::any()
-    }
-}
-
-#[cfg(not(kani))]
-impl DeployerWithAsset {
-    pub fn deployed_address(&self) -> Address {
-        Address::default()
-    }
-
-    pub fn deploy(&self) -> Address {
-        Address::default()
+        self.address
     }
 }

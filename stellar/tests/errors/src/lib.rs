@@ -1,7 +1,5 @@
 #![no_std]
-use soroban_sdk::{
-    contract, contracterror, contractimpl, log, symbol_short, verify, Address, Env, Symbol,
-};
+use soroban_sdk::{contract, contracterror, contractimpl, log, symbol_short, Address, Env, Symbol};
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
@@ -44,7 +42,7 @@ impl IncrementContract {
         // Check if the count exceeds the max.
         if count <= MAX {
             // Save the count.
-            // env.storage().instance().set(&COUNTER, &count);
+            env.storage().instance().set(&COUNTER, &count);
 
             // Return the count to the caller.
             Ok(count)

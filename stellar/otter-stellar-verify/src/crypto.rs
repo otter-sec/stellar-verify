@@ -14,12 +14,11 @@ impl Crypto {
     }
 
     pub fn sha256(&self, _data: &Bytes) -> BytesN<32> {
-        let bytes = Bytes([0; 32].to_vec());
-        BytesN(bytes)
+        BytesN([0; 32])
     }
 
     pub fn keccak256(&self, _data: &Bytes) -> BytesN<32> {
-        BytesN(Bytes([0; 32].to_vec()))
+        BytesN([0; 32])
     }
 
     pub fn ed25519_verify(
@@ -37,6 +36,6 @@ impl Crypto {
         _signature: &BytesN<64>,
         _recorvery_id: u32,
     ) -> BytesN<65> {
-        BytesN(Bytes([0; 32].to_vec()))
+        BytesN([0; 65])
     }
 }
