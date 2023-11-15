@@ -1,9 +1,9 @@
 pub mod num;
 pub mod string;
 pub mod symbol;
+pub mod val;
 pub mod vec;
 
-pub mod val;
 pub use {
     num::{Duration, Timepoint},
     string::String,

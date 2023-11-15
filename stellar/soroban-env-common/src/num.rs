@@ -25,7 +25,7 @@ impl From<u64> for Timepoint {
     }
 }
 
-#[cfg(feature = "kani")]
+#[cfg(any(kani, feature = "kani"))]
 impl kani::Arbitrary for Timepoint {
     fn any() -> Self {
         Timepoint(kani::any::<u64>())
@@ -51,7 +51,7 @@ impl FromValEnum for Duration {
     }
 }
 
-#[cfg(feature = "kani")]
+#[cfg(any(kani, feature = "kani"))]
 impl kani::Arbitrary for Duration {
     fn any() -> Self {
         Duration(kani::any::<u64>())
