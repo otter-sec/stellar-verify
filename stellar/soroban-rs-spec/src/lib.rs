@@ -1,5 +1,5 @@
+pub mod functions;
 mod read;
-pub mod r#trait;
 pub mod types;
 
 use std::{fs, io};
@@ -51,7 +51,7 @@ pub fn generate(specs: &[ScSpecEntry]) -> TokenStream {
 
     let trait_name = "Contract";
 
-    let trait_ = r#trait::generate_trait(trait_name, &spec_fns);
+    let functions_impl = functions::generate_fns(trait_name, &spec_fns);
     let structs = spec_structs.iter().map(|s| generate_struct(s));
     let unions = spec_unions.iter().map(|s| generate_union(s));
     let enums = spec_enums.iter().map(|s| generate_enum(s));
@@ -59,7 +59,7 @@ pub fn generate(specs: &[ScSpecEntry]) -> TokenStream {
 
     quote! {
 
-        #trait_
+        #functions_impl
 
         #(#structs)*
         #(#unions)*
