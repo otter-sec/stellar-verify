@@ -1,9 +1,11 @@
 use core::slice;
 use std::ops;
 
+use crate::{FromValEnum, ToValEnum, Val};
+
 const VEC_SIZE: usize = 10;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Hash)]
 pub struct Vec<T> {
     pub data: [T; VEC_SIZE],
     pub size: usize,
@@ -44,9 +46,24 @@ impl<T> Vec<T> {
         Vec::new()
     }
 
+    pub fn new_from_slice(slice: &[T]) -> Vec<T>
+    where
+        T: Default + Clone,
+    {
+        let mut v = Vec::new();
+        for z in slice {
+            v.push(z.clone());
+        }
+        v
+    }
+
     pub fn push(&mut self, t: T) {
         self.data[self.size] = t;
         self.size += 1;
+    }
+
+    pub fn pop(&mut self) {
+        self.size -= 1;
     }
 
     pub fn insert(&mut self, pos: usize, t: T) {
@@ -255,6 +272,30 @@ impl<T: Default> From<std::vec::Vec<T>> for Vec<T> {
             res.push(v);
         }
         res
+    }
+}
+
+impl<T: Default + FromValEnum> FromValEnum for Vec<T> {
+    fn from_val(val: Val) -> Option<Self> {
+        if let Val::VecVal(u) = val {
+            if u.len() > VEC_SIZE {
+                None
+            } else {
+                let mut v = Vec::new();
+                for i in u.iter() {
+                    v.push(T::from_val(*i.clone()).unwrap());
+                }
+                Some(v)
+            }
+        } else {
+            None
+        }
+    }
+}
+
+impl<T: Default + ToValEnum> ToValEnum for Vec<T> {
+    fn to_val(&self) -> Val {
+        Val::VecVal(self.into_iter().map(|v| Box::new(v.to_val())).collect())
     }
 }
 

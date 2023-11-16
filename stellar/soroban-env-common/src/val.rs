@@ -1,4 +1,5 @@
 use crate::{
+    enums::EnumType,
     num::{Duration, Timepoint},
     symbol::Symbol,
 };
@@ -21,8 +22,9 @@ pub enum Val {
     #[default]
     Void,
     Struct(Vec<u8>),
-    VecVal(Vec<Val>),
-    BytesNVal(Vec<u8>),
+    VecVal(crate::Vec<Box<Val>>),
+    EnumVal(EnumType),
+    BytesNVal(crate::Vec<u8>),
     MapVal(Vec<(Val, Val)>),
 }
 

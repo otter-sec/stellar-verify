@@ -2,7 +2,7 @@ use std::cell::{RefCell, RefMut};
 use std::fmt::Debug;
 use std::rc::Rc;
 
-use soroban_env_common::{FromValEnum, ToValEnum, Val};
+use soroban_env_common::{FromValEnum, ToValEnum, Val, Vec};
 
 use crate::token::MockToken;
 use crate::Address;
