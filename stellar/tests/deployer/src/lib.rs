@@ -15,7 +15,7 @@ impl Deployer {
     /// and it's not possible to frontrun the contract initialization.
     ///
     /// Returns the contract ID and result of the init function.
-    #[cfg_attr(feature = "kani", 
+    #[cfg_attr(any(kani, feature = "kani"), 
         verify,
         init({
             // let init_fn = Symbol::new_from_str("init_fn");

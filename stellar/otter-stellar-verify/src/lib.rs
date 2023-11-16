@@ -32,6 +32,9 @@ pub use {
     },
 };
 
+#[cfg(any(kani, feature = "kani"))]
+pub use kani::{self, Arbitrary};
+
 #[macro_export]
 macro_rules! log {
     ($env:expr, $fmt:literal $(,)?) => {

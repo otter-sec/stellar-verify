@@ -42,7 +42,7 @@ pub fn contract(
     let input: TokenStream = input.into();
     quote! {
         use soroban_sdk::{
-            token::AdminClient as TokenAdminClient, token::Client as TokenClient, verify
+            token::AdminClient as TokenAdminClient, token::Client as TokenClient, verify, kani
         };
         #input
     }
