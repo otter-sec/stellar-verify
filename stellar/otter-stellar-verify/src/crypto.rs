@@ -14,11 +14,11 @@ impl Crypto {
     }
 
     pub fn sha256(&self, _data: &Bytes) -> BytesN<32> {
-        BytesN([0; 32])
+        BytesN::default()
     }
 
     pub fn keccak256(&self, _data: &Bytes) -> BytesN<32> {
-        BytesN([0; 32])
+        BytesN::default()
     }
 
     pub fn ed25519_verify(
@@ -36,6 +36,6 @@ impl Crypto {
         _signature: &BytesN<64>,
         _recorvery_id: u32,
     ) -> BytesN<65> {
-        BytesN([0; 65])
+        BytesN::default()
     }
 }

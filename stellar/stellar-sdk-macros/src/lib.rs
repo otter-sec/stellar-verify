@@ -152,6 +152,7 @@ pub fn verify(
 
         #[kani::proof]
         #[kani::unwind(#KANI_UNWIND)]
+        #[kani::solver(kissat)]
         pub fn #proof_name() {
 
             // First: Initialize the environment and declare the variables

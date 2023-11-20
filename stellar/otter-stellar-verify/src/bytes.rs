@@ -1,7 +1,7 @@
 use crate::{env::internal, Env, IntoVal};
-use soroban_env_common::{FromValEnum, ToValEnum};
+use soroban_env_common::{FromValEnum, ToValEnum, Vec};
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Bytes(pub Vec<u8>);
 
 impl Bytes {
@@ -14,15 +14,15 @@ impl Bytes {
     }
 
     pub fn from_slice(bytes: &[u8]) -> Self {
-        Self(bytes.to_vec())
+        Bytes(Vec::new_from_slice(bytes))
     }
 
     pub fn to_vec(&self) -> Vec<u8> {
-        self.0.clone()
+        self.0
     }
 
     pub fn to_le_bytes(&self) -> Vec<u8> {
-        self.0.clone()
+        self.0
     }
 
     pub fn from_le_bytes(bytes: Vec<u8>) -> Self {
@@ -111,7 +111,7 @@ impl Bytes {
         self.0.insert(i as usize, b);
     }
 
-    pub fn iter(&self) -> std::slice::Iter<u8> {
+    pub fn iter(&self) -> soroban_env_common::vec::VecIterator<u8> {
         self.0.iter()
     }
 }
@@ -128,27 +128,25 @@ impl kani::Arbitrary for Bytes {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct BytesN<const N: usize>(pub [u8; N]);
+pub struct BytesN<const N: usize>(pub Vec<u8>);
 
 impl<const N: usize> Default for BytesN<N> {
     fn default() -> Self {
-        BytesN([0; N])
+        BytesN(Vec::new())
     }
 }
 
 impl<const N: usize> ToValEnum for BytesN<N> {
     fn to_val(&self) -> crate::Val {
-        crate::Val::BytesNVal(self.0.to_vec())
+        crate::Val::BytesNVal(self.0)
     }
 }
 
 impl<const N: usize> FromValEnum for BytesN<N> {
     fn from_val(val: crate::Val) -> Option<Self> {
         if let crate::Val::BytesNVal(u) = val {
-            if u.len() == N {
-                let mut arr = [0; N];
-                arr.copy_from_slice(&u);
-                Some(BytesN(arr))
+            if u.len() == N / 8 {
+                Some(BytesN(u))
             } else {
                 None
             }
@@ -161,10 +159,8 @@ impl<const N: usize> FromValEnum for BytesN<N> {
 impl<const N: usize> From<soroban_env_common::Val> for BytesN<N> {
     fn from(val: crate::Val) -> Self {
         if let crate::Val::BytesNVal(u) = val {
-            if u.len() == N {
-                let mut arr = [0; N];
-                arr.copy_from_slice(&u);
-                BytesN(arr)
+            if u.len() == N / 8 {
+                BytesN(u)
             } else {
                 panic!("Error")
             }
@@ -177,21 +173,20 @@ impl<const N: usize> From<soroban_env_common::Val> for BytesN<N> {
 impl<const N: usize> BytesN<N> {
     // Create a new `BytesN` instance from an array of u8
     pub fn from_array(arr: &[u8; N]) -> Self {
-        Self(*arr)
+        let v: Vec<u8> = arr.iter().take(N / 8).cloned().collect();
+        BytesN(v)
     }
 
     pub fn to_le_bytes(&self) -> [u8; N] {
-        self.0
+        [0; N]
     }
 
     pub fn from_le_bytes(bytes: [u8; N]) -> Self {
-        Self(bytes)
+        Self::from_array(&bytes)
     }
 
     pub fn unchecked_new(_env: Env, bytes: Vec<u8>) -> Self {
-        let mut arr = [0; N];
-        arr.copy_from_slice(&bytes);
-        Self(arr)
+        BytesN(bytes)
     }
 
     pub fn set(&mut self, i: u32, v: u8) {
@@ -203,7 +198,7 @@ impl<const N: usize> BytesN<N> {
     }
 
     pub fn get(&self, i: u32) -> Option<u8> {
-        if i < (N as u32) {
+        if i < (N / 8) as u32 {
             Some(self.0[i as usize])
         } else {
             None
@@ -231,7 +226,7 @@ impl<const N: usize> BytesN<N> {
     }
 
     pub fn last(&self) -> Option<u8> {
-        if N >= 1 {
+        if N >= 8 {
             Some(self.0[N - 1])
         } else {
             None
@@ -242,23 +237,23 @@ impl<const N: usize> BytesN<N> {
         self.0[N - 1]
     }
 
-    pub fn iter(&self) -> std::slice::Iter<u8> {
+    pub fn iter(&self) -> soroban_env_common::vec::VecIterator<u8> {
         self.0.iter()
     }
 }
 
 impl From<BytesN<32>> for Bytes {
     fn from(item: BytesN<32>) -> Self {
-        Bytes(item.0.to_vec())
+        Bytes(Vec::new_from_slice(&item.0))
     }
 }
 
 #[cfg(any(kani, feature = "kani"))]
 impl<const N: usize> kani::Arbitrary for BytesN<N> {
     fn any() -> Self {
-        let mut v = [0; N];
-        for i in 0..N {
-            v[i] = kani::any::<u8>();
+        let mut v = Vec::new();
+        for _ in 0..N / 8 {
+            v.push(kani::any::<u8>());
         }
         BytesN(v)
     }
@@ -267,5 +262,19 @@ impl<const N: usize> kani::Arbitrary for BytesN<N> {
 impl<E: internal::Env> IntoVal<E, BytesN<32>> for BytesN<32> {
     fn into_val(self, _env: &E) -> BytesN<32> {
         self
+    }
+}
+
+impl<const N: usize> From<Box<crate::Val>> for BytesN<N> {
+    fn from(value: Box<crate::Val>) -> Self {
+        if let crate::Val::BytesNVal(u) = *value {
+            if u.len() == N / 8 {
+                BytesN(u)
+            } else {
+                panic!("Err")
+            }
+        } else {
+            panic!("Err")
+        }
     }
 }

@@ -1,3 +1,4 @@
+pub mod enums;
 pub mod num;
 pub mod string;
 pub mod symbol;
@@ -5,6 +6,7 @@ pub mod val;
 pub mod vec;
 
 pub use {
+    enums::EnumType,
     num::{Duration, Timepoint},
     string::String,
     symbol::Symbol,

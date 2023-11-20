@@ -24,7 +24,7 @@ pub use {
     map::Map,
     prng::Prng,
     soroban_env_common::{
-        symbol::Symbol, symbol_short, BytesObject, ConversionError, FromValEnum, String, Timepoint,
+        symbol::Symbol, symbol_short, BytesObject, ConversionError, EnumType, FromValEnum, String, Timepoint,
         ToValEnum, Val, Vec,
     },
     stellar_sdk_macros::{

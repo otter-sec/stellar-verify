@@ -1,6 +1,6 @@
 use crate::{address::Address, env::Env};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct MockToken {
     pub address: Address,
     pub name: String,
