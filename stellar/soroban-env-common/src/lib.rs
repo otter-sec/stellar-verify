@@ -11,3 +11,10 @@ pub use {
     val::{BytesObject, ConversionError, FromValEnum, ToValEnum, Val},
     vec::Vec,
 };
+
+#[macro_export]
+macro_rules! symbol_short {
+    ($input:expr) => {
+        soroban_sdk::Symbol::new_from_str($input)
+    };
+}

@@ -10,7 +10,6 @@ proc-macro2 = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true }
 darling = "0.20.0"
-soroban-env-common = { path = "../soroban-env-common" }
 soroban-rs-spec = {path = "../soroban-rs-spec"}
 
 [lib]

@@ -369,7 +369,6 @@ dependencies = [
  "darling",
  "proc-macro2",
  "quote",
- "soroban-env-common",
  "soroban-rs-spec",
  "syn 1.0.109",
 ]

@@ -1,10 +1,8 @@
 use darling::{ast::NestedMeta, FromMeta};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
-use soroban_env_common::symbol::Symbol;
 use syn::{
-    parse_macro_input, Block, Data, DeriveInput, Error, Expr, Fields, FieldsNamed, FnArg, ItemFn,
-    LitStr, Pat, PatIdent, DataEnum,
+    parse_macro_input, Block, Data, DeriveInput, Error, Expr, Fields, FieldsNamed, FnArg, ItemFn, Pat, PatIdent, DataEnum,
 };
 use soroban_rs_spec::generate_from_file;
 
@@ -182,22 +180,6 @@ pub fn verify(
 
     }
     .into()
-}
-
-#[proc_macro]
-pub fn symbol_short(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let input = parse_macro_input!(input as LitStr);
-    let symbol_str = input.value();
-
-    match Symbol::try_from_bytes(symbol_str.as_bytes()) {
-        Ok(_) => quote! {
-            soroban_sdk::Symbol::new_from_str(#symbol_str)
-        }
-        .into(),
-        Err(e) => Error::new(input.span(), format!("{e}"))
-            .to_compile_error()
-            .into(),
-    }
 }
 
 #[proc_macro]
