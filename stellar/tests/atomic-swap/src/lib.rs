@@ -5,7 +5,7 @@
 #![no_std]
 
 use soroban_sdk::{
-    contract, contractimpl, token, verify, Address, Env, IntoVal,
+    contract, contractimpl, token, Address, Env, IntoVal,
 };
 
 #[contract]

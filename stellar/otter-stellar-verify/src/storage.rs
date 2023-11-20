@@ -200,8 +200,8 @@ impl Storage {
 #[cfg(test)]
 mod test {
     use soroban_env_common as soroban_sdk;
+    use soroban_sdk::symbol_short;
     use soroban_sdk::Symbol;
-    use stellar_sdk_macros::symbol_short;
 
     use crate::Env;
 

@@ -24,13 +24,16 @@ pub use {
     map::Map,
     prng::Prng,
     soroban_env_common::{
-        symbol::Symbol, BytesObject, ConversionError, EnumType, FromValEnum, String, Timepoint,
+        symbol::Symbol, symbol_short, BytesObject, ConversionError, EnumType, FromValEnum, String, Timepoint,
         ToValEnum, Val, Vec,
     },
     stellar_sdk_macros::{
-        contract, contracterror, contractimpl, contractmeta, contracttype, symbol_short, verify,
+        contract, contracterror, contractimpl, contractimport, contractmeta, contracttype, verify,
     },
 };
+
+#[cfg(any(kani, feature = "kani"))]
+pub use kani::{self, Arbitrary};
 
 #[macro_export]
 macro_rules! log {
@@ -55,18 +58,6 @@ macro_rules! vec {
     );
 }
 
-#[macro_export]
-macro_rules! contractimport {
-    (file = $path:expr) => {
-        pub struct Client {}
-
-        impl Client {
-            pub fn new(_env: &soroban_sdk::Env, _contract: &soroban_sdk::Address) -> Self {
-                Self {}
-            }
-        }
-    };
-}
 #[cfg(any(kani, feature = "kani"))]
 mod verification {
     use super::*;

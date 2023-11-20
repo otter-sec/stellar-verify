@@ -25,6 +25,13 @@ impl From<u64> for Timepoint {
     }
 }
 
+#[cfg(any(kani, feature = "kani"))]
+impl kani::Arbitrary for Timepoint {
+    fn any() -> Self {
+        Timepoint(kani::any::<u64>())
+    }
+}
+
 #[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord)]
 pub struct Duration(u64);
 
@@ -41,6 +48,13 @@ impl FromValEnum for Duration {
         } else {
             None
         }
+    }
+}
+
+#[cfg(any(kani, feature = "kani"))]
+impl kani::Arbitrary for Duration {
+    fn any() -> Self {
+        Duration(kani::any::<u64>())
     }
 }
 

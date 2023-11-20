@@ -1,4 +1,4 @@
-use soroban_sdk::{contracttype, symbol_short, Env, FromValEnum, String, Symbol, ToValEnum, Val};
+use soroban_sdk::{contracttype, symbol_short, Env, String, Symbol};
 
 const _METADATA_KEY: Symbol = symbol_short!("METADATA");
 

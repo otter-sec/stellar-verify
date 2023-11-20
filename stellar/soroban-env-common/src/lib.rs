@@ -2,9 +2,9 @@ pub mod enums;
 pub mod num;
 pub mod string;
 pub mod symbol;
+pub mod val;
 pub mod vec;
 
-pub mod val;
 pub use {
     enums::EnumType,
     num::{Duration, Timepoint},
@@ -13,3 +13,10 @@ pub use {
     val::{BytesObject, ConversionError, FromValEnum, ToValEnum, Val},
     vec::Vec,
 };
+
+#[macro_export]
+macro_rules! symbol_short {
+    ($input:expr) => {
+        soroban_sdk::Symbol::new_from_str($input)
+    };
+}

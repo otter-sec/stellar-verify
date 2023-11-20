@@ -1,10 +1,10 @@
+use darling::{ast::NestedMeta, FromMeta};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
-use soroban_env_common::symbol::Symbol;
 use syn::{
-    parse_macro_input, Block, Data, DeriveInput, Error, Expr, Fields, FieldsNamed, FnArg, ItemFn,
-    LitStr, Pat, PatIdent, DataEnum,
+    parse_macro_input, Block, Data, DeriveInput, Error, Expr, Fields, FieldsNamed, FnArg, ItemFn, Pat, PatIdent, DataEnum,
 };
+use soroban_rs_spec::generate_from_file;
 
 const KANI_UNWIND: usize = 20;
 
@@ -42,7 +42,7 @@ pub fn contract(
     let input: TokenStream = input.into();
     quote! {
         use soroban_sdk::{
-            token::AdminClient as TokenAdminClient, token::Client as TokenClient, verify
+            token::AdminClient as TokenAdminClient, token::Client as TokenClient, verify, kani
         };
         #input
     }
@@ -184,25 +184,59 @@ pub fn verify(
 }
 
 #[proc_macro]
-pub fn symbol_short(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let input = parse_macro_input!(input as LitStr);
-    let symbol_str = input.value();
-
-    match Symbol::try_from_bytes(symbol_str.as_bytes()) {
-        Ok(_) => quote! {
-            soroban_sdk::Symbol::new_from_str(#symbol_str)
-        }
-        .into(),
-        Err(e) => Error::new(input.span(), format!("{e}"))
-            .to_compile_error()
-            .into(),
-    }
-}
-
-#[proc_macro]
 pub fn contractmeta(metadata: proc_macro::TokenStream) -> proc_macro::TokenStream {
     metadata
 }
+
+#[derive(Debug, FromMeta)]
+#[allow(dead_code)]
+struct ContractImportArgs {
+    file: String,
+    #[darling(default)]
+    sha256: darling::util::SpannedValue<Option<String>>,
+}
+
+#[proc_macro]
+pub fn contractimport(metadata: proc_macro::TokenStream) -> proc_macro::TokenStream {
+        let args = match NestedMeta::parse_meta_list(metadata.into()) {
+            Ok(v) => v,
+            Err(e) => {
+                return proc_macro::TokenStream::from(darling::Error::from(e).write_errors());
+            }
+        };
+
+        let args = match ContractImportArgs::from_list(&args) {
+            Ok(v) => v,
+            Err(e) => return e.write_errors().into(),
+        };
+    
+        // Read WASM from file.
+        let file_abs = abs_from_rel_to_manifest(args.file);
+    
+        // Generate.
+        match generate_from_file(file_abs.to_str().unwrap()) {
+            Ok(code) => quote! { 
+                pub struct Client {
+                    pub env: soroban_sdk::Env,
+                    pub address: soroban_sdk::Address,
+                }
+
+                impl Client {
+                    pub fn new(env: &soroban_sdk::Env, address: &soroban_sdk::Address) -> Self {
+                        Self {
+                            env : env.clone(),
+                            address: address.clone()
+                        }
+                    }
+                }
+                #code 
+            },
+            Err(e) => Error::new(proc_macro2::Span::call_site(), e.to_string()).into_compile_error(),
+        }
+        .into()
+
+    }
+
 
 #[proc_macro_attribute]
 pub fn contracttype(
@@ -481,3 +515,17 @@ fn generate_from_val_enum(data: &DataEnum, enum_name: &Ident) -> proc_macro2::To
             
 }
 
+
+
+
+fn abs_from_rel_to_manifest(path: impl Into<std::path::PathBuf>) -> std::path::PathBuf {
+    let path: std::path::PathBuf = path.into();
+    if path.is_relative() {
+        let root: std::path::PathBuf = std::env::var("CARGO_MANIFEST_DIR")
+            .expect("CARGO_MANIFEST_DIR environment variable is required to be set")
+            .into();
+        root.join(path)
+    } else {
+        path
+    }
+}
