@@ -1,10 +1,5 @@
-// use crate::{
-//     env::internal::Env as _, unwrap::UnwrapInfallible, Bytes, Env, IntoVal, TryFromVal, Val,
-// };
 use crate::{bytes::Bytes, Env};
 use soroban_env_common::{FromValEnum, ToValEnum};
-
-pub use stellar_xdr::*;
 
 pub trait ToXdr {
     fn to_xdr(self, _env: &Env) -> Bytes;
