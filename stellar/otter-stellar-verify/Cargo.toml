@@ -8,6 +8,7 @@ edition = "2021"
 kani = { workspace = true, optional = true }
 stellar-sdk-macros = { path = "../stellar-sdk-macros" }
 soroban-env-common ={ path = "../soroban-env-common" }
+stellar-xdr = { workspace = true }
 rand =  "0.8"
 
 [features]
