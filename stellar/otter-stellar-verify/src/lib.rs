@@ -31,6 +31,7 @@ pub use {
     stellar_sdk_macros::{
         contract, contracterror, contractimpl, contractimport, contractmeta, contracttype, verify,
     },
+    xdr::{FromXdr, ToXdr},
 };
 
 #[cfg(any(kani, feature = "kani"))]
