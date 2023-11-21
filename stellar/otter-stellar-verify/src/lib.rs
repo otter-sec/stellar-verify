@@ -12,6 +12,7 @@ pub mod storage;
 pub mod symbol;
 pub mod testutils;
 pub mod token;
+pub mod xdr;
 
 pub use {
     address::Address,
@@ -24,12 +25,13 @@ pub use {
     map::Map,
     prng::Prng,
     soroban_env_common::{
-        symbol::Symbol, symbol_short, BytesObject, ConversionError, EnumType, FromValEnum, String, Timepoint,
-        ToValEnum, Val, Vec,
+        symbol::Symbol, symbol_short, BytesObject, ConversionError, EnumType, FromValEnum, String,
+        Timepoint, ToValEnum, Val, Vec,
     },
     stellar_sdk_macros::{
         contract, contracterror, contractimpl, contractimport, contractmeta, contracttype, verify,
     },
+    xdr::{FromXdr, ToXdr},
 };
 
 #[cfg(any(kani, feature = "kani"))]

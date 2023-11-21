@@ -17,5 +17,6 @@ kani = { path = "./dependencies/kani/library/kani", features = ["concrete_playba
 num-traits = "0.2"
 proc-macro2 = "1.0.49"
 quote = "1.0.23"
+stellar-xdr = "20.0.0-rc1"
 syn = { version = "1.0.108", features = ["full"] }
 
