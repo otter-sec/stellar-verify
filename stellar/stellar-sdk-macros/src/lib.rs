@@ -20,15 +20,13 @@ pub fn contractimpl(
 #[proc_macro_attribute]
 pub fn contract(_metadata: proc_macro::TokenStream, input_: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input_ as syn::ItemStruct);
-
-    // Retrieve the struct name
     let name = &input.ident;
 
     quote! {
         use soroban_sdk::{
             token::AdminClient as TokenAdminClient, token::Client as TokenClient, verify, kani
         };
-        
+
         #input
 
         impl #name {
