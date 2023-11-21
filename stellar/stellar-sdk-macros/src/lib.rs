@@ -13,40 +13,34 @@ pub fn contractimpl(
     _metadata: proc_macro::TokenStream,
     input: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    let mut item = parse_macro_input!(input as syn::ItemImpl);
+    input
+}
 
-    let gen_fn = syn::parse2(quote! {
-        fn create_token_contract<'a>(e: &Env, admin: &Address) -> (TokenClient, TokenAdminClient) {
-            let contract_address = e.register_stellar_asset_contract(admin.clone());
+
+#[proc_macro_attribute]
+pub fn contract(_metadata: proc_macro::TokenStream, input_: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = parse_macro_input!(input_ as syn::ItemStruct);
+
+    // Retrieve the struct name
+    let name = &input.ident;
+
+    quote! {
+        use soroban_sdk::{
+            token::AdminClient as TokenAdminClient, token::Client as TokenClient, verify, kani
+        };
+        
+        #input
+
+        impl #name {
+            fn create_token_contract<'a>(e: &Env, admin: &Address) -> (TokenClient, TokenAdminClient) {
+                let contract_address = e.register_stellar_asset_contract(admin.clone());
                 (
                     TokenClient::new(e, &contract_address),
                     TokenAdminClient::new(e, &contract_address),
                 )
             }
-    }).unwrap();
-
-    if let syn::ImplItem::Method(method) = gen_fn {
-        item.items.push(syn::ImplItem::Method(method));
-    }
-
-    quote! { 
-        #item 
+        }
     }.into()
-}
-
-#[proc_macro_attribute]
-pub fn contract(
-    _metadata: proc_macro::TokenStream,
-    input: proc_macro::TokenStream,
-) -> proc_macro::TokenStream {
-    let input: TokenStream = input.into();
-    quote! {
-        use soroban_sdk::{
-            token::AdminClient as TokenAdminClient, token::Client as TokenClient, verify, kani
-        };
-        #input
-    }
-    .into()
 }
 
 #[proc_macro_attribute]
