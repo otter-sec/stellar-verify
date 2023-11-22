@@ -177,6 +177,7 @@ dependencies = [
  "rand",
  "soroban-env-common",
  "stellar-sdk-macros",
+ "stellar-xdr",
 ]
 
 [[package]]
