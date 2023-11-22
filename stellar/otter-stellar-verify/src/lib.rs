@@ -20,7 +20,7 @@ pub use {
     bytes::{Bytes, BytesN},
     crypto::Crypto,
     deploy::Deployer,
-    env::{Env, IntoVal},
+    env::{Env, IntoVal, TryFromVal},
     events::Events,
     map::Map,
     prng::Prng,

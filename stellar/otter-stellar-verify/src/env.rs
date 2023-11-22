@@ -4,6 +4,7 @@ use crate::Deployer;
 use crate::Prng;
 use crate::Val;
 use crate::{address::Address, events::Events, storage::Storage, token::MockToken};
+use std::fmt::Debug;
 use std::{
     cell::{Ref, RefCell},
     rc::Rc,
@@ -112,4 +113,9 @@ impl Env {
 
 pub trait IntoVal<E: internal::Env, T> {
     fn into_val(self, e: &E) -> T;
+}
+
+pub trait TryFromVal<E: internal::Env, V: ?Sized>: Sized {
+    type Error: Debug + Into<crate::ConversionError>;
+    fn try_from_val(env: &E, v: &V) -> Result<Self, Self::Error>;
 }
