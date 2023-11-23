@@ -1,61 +1,15 @@
 #![no_std]
-use alloc::string::ToString;
 use soroban_sdk::{contract, contractimpl, contracttype, Address, BytesN, Env};
 
-#[macro_use]
 extern crate alloc;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
-// #[contracttype]
+#[contracttype]
 pub enum DataKey {
     SignerCnt,
     ZeroVal,
     Counter(Address),
     Data(BytesN<32>),
-}
-
-impl ToValEnum for DataKey {
-    fn to_val(&self) -> Val {
-        match self {
-            DataKey::ZeroVal => Val::EnumVal(soroban_sdk::EnumType {
-                variant: symbol_short!("ZeroVal"),
-                value: Vec::new().into(),
-            }),
-            DataKey::SignerCnt => Val::EnumVal(soroban_sdk::EnumType {
-                variant: symbol_short!("SignerCnt"),
-                value: Vec::new().into(),
-            }),
-            DataKey::Counter(data) => Val::EnumVal(soroban_sdk::EnumType {
-                variant: symbol_short!("Counter"),
-                value: data.to_le_bytes().to_vec().into(),
-            }),
-            DataKey::Data(data) => Val::EnumVal(soroban_sdk::EnumType {
-                variant: symbol_short!("Data"),
-                value: data.to_le_bytes().to_vec().into(),
-            }),
-        }
-    }
-}
-
-impl FromValEnum for DataKey {
-    fn from_val(val: Val) -> Option<Self> {
-        // kani::assume(matches!(val, Val::EnumVal { .. }));
-        if let Val::EnumVal(enumval) = val {
-            match enumval.variant.as_str() {
-                "SignerCnt" => Some(DataKey::SignerCnt),
-                "ZeroVal" => Some(DataKey::ZeroVal),
-                "Counter" => Some(DataKey::Counter(Address::from_le_bytes(
-                    enumval.value[0..1].try_into().unwrap(),
-                ))),
-                "Data" => Some(DataKey::Data(BytesN::<32>::from_le_bytes(
-                    enumval.value[0..10].try_into().unwrap(),
-                ))),
-                _ => None,
-            }
-        } else {
-            None
-        }
-    }
 }
 
 #[contract]

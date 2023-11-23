@@ -8,7 +8,7 @@ pub trait ToXdr {
 pub trait FromXdr: Sized {
     fn from_xdr(_env: &Env, _b: &Bytes) -> Result<Self, ConversionError>;
 }
-
+#[cfg(any(kani, feature = "kani"))]
 impl<T> ToXdr for T
 where
     T: ToValEnum,
@@ -18,6 +18,7 @@ where
     }
 }
 
+#[cfg(any(kani, feature = "kani"))]
 impl<T> FromXdr for T
 where
     T: FromValEnum,

@@ -480,10 +480,10 @@ fn generate_from_val_enum(data: &DataEnum, enum_name: &Ident) -> proc_macro2::To
 
                     },
                     Fields::Unnamed(unnamed_feilds) => {
-                    let ty = &unnamed_feilds.unnamed.first().unwrap().ty;
+                        let ty = &unnamed_feilds.unnamed.last().unwrap().ty;
                         quote! {
                             #variant_name => Some(#enum_name::#variant_ident(
-                                #ty::from_le_bytes(
+                                <#ty>::from_le_bytes(
                                     enumval.value[0..core::mem::size_of::<#ty>()].try_into().unwrap()
                                 )
                             )),
