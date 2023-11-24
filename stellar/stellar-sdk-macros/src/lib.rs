@@ -6,7 +6,7 @@ use syn::{
 };
 use soroban_rs_spec::generate_from_file;
 
-const KANI_UNWIND: usize = 20;
+const KANI_UNWIND: usize = 33;
 
 #[proc_macro_attribute]
 pub fn contractimpl(
@@ -24,8 +24,10 @@ pub fn contract(_metadata: proc_macro::TokenStream, input_: proc_macro::TokenStr
 
     quote! {
         use soroban_sdk::{
-            token::AdminClient as TokenAdminClient, token::Client as TokenClient, verify, kani
+            token::AdminClient as TokenAdminClient, token::Client as TokenClient, verify,
         };
+        #[cfg(any(kani, feature = "kani"))]
+        use soroban_sdk::kani;
 
         #input
 
@@ -484,7 +486,7 @@ fn generate_from_val_enum(data: &DataEnum, enum_name: &Ident) -> proc_macro2::To
                         quote! {
                             #variant_name => Some(#enum_name::#variant_ident(
                                 <#ty>::from_le_bytes(
-                                    enumval.value[0..core::mem::size_of::<#ty>()].try_into().unwrap()
+                                    enumval.value.try_into().unwrap()
                                 )
                             )),
                         }

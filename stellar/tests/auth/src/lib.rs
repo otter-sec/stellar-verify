@@ -83,7 +83,7 @@ mod test {
     fn test_increment() {
         let env = Env::default();
         let user = Address::new(&env);
-        let bydata: BytesN<32> = BytesN::from_array(&[
+        let bydata = BytesN::from_array(&[
             1u8, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4,
             5, 6, 7, 8,
         ]);

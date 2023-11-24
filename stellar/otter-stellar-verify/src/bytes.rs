@@ -145,11 +145,12 @@ impl<const N: usize> ToValEnum for BytesN<N> {
 impl<const N: usize> FromValEnum for BytesN<N> {
     fn from_val(val: crate::Val) -> Option<Self> {
         if let crate::Val::BytesNVal(u) = val {
-            if u.len() == N / 8 {
-                Some(BytesN(u))
-            } else {
-                None
-            }
+            // if u.len() == N / 8 {
+            //     Some(BytesN(u))
+            // } else {
+            //     None
+            // }
+            Some(BytesN(u))
         } else {
             None
         }
@@ -159,11 +160,12 @@ impl<const N: usize> FromValEnum for BytesN<N> {
 impl<const N: usize> From<soroban_env_common::Val> for BytesN<N> {
     fn from(val: crate::Val) -> Self {
         if let crate::Val::BytesNVal(u) = val {
-            if u.len() == N / 8 {
-                BytesN(u)
-            } else {
-                panic!("Error")
-            }
+            // if u.len() == N / 8 {
+            //     BytesN(u)
+            // } else {
+            //     panic!("Error")
+            // }
+            BytesN(u)
         } else {
             panic!("Error")
         }
@@ -173,12 +175,18 @@ impl<const N: usize> From<soroban_env_common::Val> for BytesN<N> {
 impl<const N: usize> BytesN<N> {
     // Create a new `BytesN` instance from an array of u8
     pub fn from_array(arr: &[u8; N]) -> Self {
-        let v: Vec<u8> = arr.iter().take(N / 8).cloned().collect();
+        let v: Vec<u8> = arr.iter().take(N).cloned().collect();
         BytesN(v)
     }
 
     pub fn to_le_bytes(&self) -> [u8; N] {
-        [0; N]
+        let mut result = [0u8; N];
+
+        // Copy as many bytes as possible, up to N
+        let len = self.0.len().min(N);
+        result[..len].copy_from_slice(&self.0[..len]);
+
+        result
     }
 
     pub fn from_le_bytes(bytes: [u8; N]) -> Self {
@@ -198,7 +206,7 @@ impl<const N: usize> BytesN<N> {
     }
 
     pub fn get(&self, i: u32) -> Option<u8> {
-        if i < (N / 8) as u32 {
+        if i < (N) as u32 {
             Some(self.0[i as usize])
         } else {
             None
@@ -252,7 +260,7 @@ impl From<BytesN<32>> for Bytes {
 impl<const N: usize> kani::Arbitrary for BytesN<N> {
     fn any() -> Self {
         let mut v = Vec::new();
-        for _ in 0..N / 8 {
+        for _ in 0..N {
             v.push(kani::any::<u8>());
         }
         BytesN(v)
@@ -268,7 +276,7 @@ impl<E: internal::Env> IntoVal<E, BytesN<32>> for BytesN<32> {
 impl<const N: usize> From<Box<crate::Val>> for BytesN<N> {
     fn from(value: Box<crate::Val>) -> Self {
         if let crate::Val::BytesNVal(u) = *value {
-            if u.len() == N / 8 {
+            if u.len() == N {
                 BytesN(u)
             } else {
                 panic!("Err")
