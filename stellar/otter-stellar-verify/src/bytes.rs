@@ -5,7 +5,7 @@ use soroban_env_common::{FromValEnum, ToValEnum, Vec};
 pub struct Bytes(pub Vec<u8>);
 
 impl Bytes {
-    pub fn new(_env: Env, bytes: Vec<u8>) -> Self {
+    pub fn new(_env: Env) -> Self {
         Self(bytes)
     }
 
