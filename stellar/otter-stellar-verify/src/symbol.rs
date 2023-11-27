@@ -1,6 +1,4 @@
-use soroban_env_common::Symbol;
-
-use crate::Env;
+use soroban_env_common::{Env, Symbol};
 
 trait SymbolExt {
     fn new(env: Env, sym: Symbol) -> Self;

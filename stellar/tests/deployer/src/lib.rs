@@ -1,7 +1,7 @@
 #![no_std]
 
+use crate::env::EnvTrait;
 use soroban_sdk::{contract, contractimpl, Address, BytesN, Env, Symbol, Val, Vec};
-
 #[contract]
 pub struct Deployer;
 

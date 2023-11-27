@@ -2,10 +2,7 @@ use std::cell::{RefCell, RefMut};
 use std::fmt::Debug;
 use std::rc::Rc;
 
-use soroban_env_common::{FromValEnum, ToValEnum, Val, Vec};
-
-use crate::token::MockToken;
-use crate::Address;
+use crate::{token::MockToken, Address, FromValEnum, ToValEnum, Val, Vec};
 
 #[derive(Clone, Default)]
 pub struct Storage {
@@ -194,40 +191,5 @@ impl Storage {
             .unwrap();
         //replace the token
         self.tokens[index] = token;
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use soroban_env_common as soroban_sdk;
-    use soroban_sdk::symbol_short;
-    use soroban_sdk::Symbol;
-
-    use crate::Env;
-
-    #[test]
-    pub fn test_set_get_instance() {
-        let env = Env::default();
-        let counter: Symbol = symbol_short!("COUNTER");
-        let count = 1;
-
-        env.storage().instance().set(&counter, &count);
-
-        let result = env.storage().instance().get(&counter).unwrap_or(0);
-        assert_eq!(result, count);
-    }
-
-    #[test]
-    pub fn test_clone() {
-        let env = Env::default();
-        let env_clone = env.clone();
-        let counter: Symbol = symbol_short!("COUNTER");
-        increment(env, counter, 101);
-        let result = env_clone.storage().instance().get(&counter).unwrap_or(0);
-        assert_eq!(result, 101);
-    }
-
-    pub fn increment(env: Env, counter: Symbol, count: i32) {
-        env.storage().instance().set(&counter, &count);
     }
 }

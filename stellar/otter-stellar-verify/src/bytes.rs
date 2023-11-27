@@ -1,6 +1,4 @@
-use crate::{env::internal, Env, IntoVal};
-use soroban_env_common::{FromValEnum, ToValEnum, Vec};
-
+use soroban_env_common::{env::internal, Env, FromValEnum, IntoVal, ToValEnum, Vec};
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Bytes(pub Vec<u8>);
 

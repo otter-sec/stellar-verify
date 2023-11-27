@@ -1,5 +1,5 @@
-use crate::{bytes::Bytes, Env};
-use soroban_env_common::{ConversionError, FromValEnum, ToValEnum};
+use crate::Bytes;
+use soroban_env_common::{ConversionError, Env, FromValEnum, ToValEnum};
 
 pub trait ToXdr {
     fn to_xdr(self, _env: &Env) -> Bytes;

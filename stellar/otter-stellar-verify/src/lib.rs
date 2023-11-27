@@ -1,4 +1,3 @@
-pub mod address;
 pub mod auth;
 pub mod bytes;
 pub mod crypto;
@@ -8,25 +7,27 @@ pub mod events;
 pub mod ledger;
 pub mod map;
 pub mod prng;
-pub mod storage;
 pub mod symbol;
 pub mod testutils;
-pub mod token;
 pub mod xdr;
 
 pub use {
-    address::Address,
     auth::Context,
     bytes::{Bytes, BytesN},
     crypto::Crypto,
     deploy::Deployer,
-    env::{Env, IntoVal, TryFromVal},
+    env::EnvTrait,
     events::Events,
     map::Map,
     prng::Prng,
     soroban_env_common::{
-        symbol::Symbol, symbol_short, BytesObject, ConversionError, EnumType, FromValEnum, String,
-        Timepoint, ToValEnum, Val, Vec,
+        address::Address,
+        env::{Env, IntoVal, TryFromVal},
+        symbol::Symbol,
+        symbol_short,
+        token::{self, AdminClient, Client, Interface, MockToken},
+        BytesObject, ConversionError, EnumType, FromValEnum, String, Timepoint, ToValEnum, Val,
+        Vec,
     },
     stellar_sdk_macros::{
         contract, contracterror, contractimpl, contractimport, contractmeta, contracttype, verify,
@@ -63,12 +64,13 @@ macro_rules! vec {
 #[cfg(any(kani, feature = "kani"))]
 mod verification {
     use super::*;
+    use soroban_env_common::{Address, Env};
 
     #[kani::proof]
     pub fn check_address() {
-        let env = env::Env::default();
-        let a: address::Address = Address::new(&env);
-        let b: address::Address = Address::new(&env);
+        let env = Env::default();
+        let a: Address = Address::new(&env);
+        let b: Address = Address::new(&env);
         assert!(a != b);
     }
 }

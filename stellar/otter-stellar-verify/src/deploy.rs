@@ -1,4 +1,5 @@
-use crate::{Address, Bytes, BytesN, Env, IntoVal};
+use crate::{Bytes, BytesN};
+use soroban_env_common::{Address, Env, IntoVal};
 
 pub struct Deployer {
     env: Env,
