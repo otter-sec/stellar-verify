@@ -5,8 +5,8 @@ use soroban_env_common::{FromValEnum, ToValEnum, Vec};
 pub struct Bytes(pub Vec<u8>);
 
 impl Bytes {
-    pub fn new(_env: Env, bytes: Vec<u8>) -> Self {
-        Self(bytes)
+    pub fn new(_env: Env) -> Self {
+        Self(Vec::new())
     }
 
     pub fn as_slice(&self) -> &[u8] {
@@ -105,6 +105,10 @@ impl Bytes {
         let last = self.last_unchecked();
         self.0.pop();
         last
+    }
+
+    pub fn append(&mut self, other: &Bytes) {
+        self.0.extend_from_slice(other.as_slice());
     }
 
     pub fn insert(&mut self, i: u32, b: u8) {
