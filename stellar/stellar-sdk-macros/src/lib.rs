@@ -22,12 +22,30 @@ pub fn contract(_metadata: proc_macro::TokenStream, input_: proc_macro::TokenStr
     let input = parse_macro_input!(input_ as syn::ItemStruct);
     let name = &input.ident;
 
+    let client = format_ident!("{}Client", name, span = name.span());
+
     quote! {
         use soroban_sdk::{
             token::AdminClient as TokenAdminClient, token::Client as TokenClient, verify, kani
         };
 
         #input
+
+        pub struct #client<'a> {
+            pub env: soroban_sdk::Env,
+            pub address: soroban_sdk::Address,
+            _phantom: core::marker::PhantomData<&'a ()>,
+        }
+
+        impl<'a> #client<'a> {
+            pub fn new(env: &soroban_sdk::Env, address: &soroban_sdk::Address) -> Self {
+                Self {
+                    env: env.clone(),
+                    address: address.clone(),
+                    _phantom: core::marker::PhantomData,
+                }
+            }
+        }
 
         impl #name {
             fn create_token_contract<'a>(e: &Env, admin: &Address) -> (TokenClient, TokenAdminClient) {
