@@ -8,14 +8,59 @@ use soroban_rs_spec::generate_from_file;
 
 const KANI_UNWIND: usize = 20;
 
+// #[proc_macro_attribute]
+// pub fn contractimpl(
+//     _metadata: proc_macro::TokenStream,
+//     input: proc_macro::TokenStream,
+// ) -> proc_macro::TokenStream {
+//     input
+// }
 #[proc_macro_attribute]
-pub fn contractimpl(
-    _metadata: proc_macro::TokenStream,
-    input: proc_macro::TokenStream,
-) -> proc_macro::TokenStream {
-    input
-}
+pub fn contractimpl(_attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = parse_macro_input!(item as syn::ItemImpl);
+    let struct_name = input.self_ty.as_ref();
 
+    let name = if let syn::Type::Path(syn::TypePath { path, .. }) = struct_name {
+        path.segments.last().map(|seg: &syn::PathSegment| seg.ident.clone()).unwrap()
+    } else {
+        return syn::Error::new_spanned(input, "Expected an impl for a struct").to_compile_error().into();
+    };
+
+    let client = syn::Ident::new(&format!("{}Client", name), name.span());
+
+    let methods = input.items.clone().into_iter().filter_map(|item| {
+        if let syn::ImplItem::Method(method) = item {
+            let output = &method.sig.output;
+            let method_name = &method.sig.ident;
+            let inputs = &method.sig.inputs;
+            
+
+            let ret = match output {
+                syn::ReturnType::Default => quote! { 
+                    pub fn #method_name(#inputs) #output {} 
+                },
+                syn::ReturnType::Type(_, t) => quote! { 
+                    pub fn #method_name(#inputs) #output {
+                        kani::any::<#t>()
+                    }
+                 },
+            };
+
+            Some(ret)
+        } else {
+            None
+        }
+    });
+
+    quote! {
+        #input
+
+        impl<'a> #client<'a> {
+            #( #methods )*
+
+        }
+    }.into()
+}
 
 #[proc_macro_attribute]
 pub fn contract(_metadata: proc_macro::TokenStream, input_: proc_macro::TokenStream) -> proc_macro::TokenStream {
