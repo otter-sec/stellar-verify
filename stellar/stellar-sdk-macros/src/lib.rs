@@ -8,13 +8,7 @@ use soroban_rs_spec::generate_from_file;
 
 const KANI_UNWIND: usize = 20;
 
-// #[proc_macro_attribute]
-// pub fn contractimpl(
-//     _metadata: proc_macro::TokenStream,
-//     input: proc_macro::TokenStream,
-// ) -> proc_macro::TokenStream {
-//     input
-// }
+
 #[proc_macro_attribute]
 pub fn contractimpl(_attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(item as syn::ItemImpl);
@@ -32,21 +26,50 @@ pub fn contractimpl(_attr: proc_macro::TokenStream, item: proc_macro::TokenStrea
         if let syn::ImplItem::Method(method) = item {
             let output = &method.sig.output;
             let method_name = &method.sig.ident;
-            let inputs = &method.sig.inputs;
+            // let inputs = &method.sig.inputs;
+
+            let mut inputs = Vec::new();
+            inputs.push(syn::parse_quote! { &self });
+            for arg in method.sig.inputs.iter().skip(1) {
+                let transformed_arg = if let FnArg::Typed(pat_type) = arg {
+                    let syn::PatType { pat, ty, attrs, .. } = pat_type;
+                    let new_ty = quote! { &#ty };
+                    syn::parse_quote! { #(#attrs)* #pat: #new_ty }
+                } else {
+                    arg.clone()
+                };
+            
+                inputs.push(transformed_arg);
+            }
+                
+            
+
             
 
             let ret = match output {
                 syn::ReturnType::Default => quote! { 
-                    pub fn #method_name(#inputs) #output {} 
+                    pub fn #method_name(#(#inputs),*) #output {} 
                 },
-                syn::ReturnType::Type(_, t) => quote! { 
-                    pub fn #method_name(#inputs) #output {
-                        kani::any::<#t>()
+                syn::ReturnType::Type(_, t) => {
+                    let type_str  = t.clone().to_token_stream().to_string();
+                    if type_str.contains("Val") {
+                        quote! { 
+                            pub fn #method_name(#(#inputs),*) #output {
+                                Default::default::<#t>()
+                            }
+                         }
+                    } else {
+                        quote! { 
+                            pub fn #method_name(#(#inputs),*) #output {
+                                kani::any::<#t>()
+                            }
+                        }
                     }
-                 },
+                }
             };
 
             Some(ret)
+
         } else {
             None
         }
