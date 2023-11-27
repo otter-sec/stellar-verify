@@ -41,9 +41,6 @@ pub fn contractimpl(_attr: proc_macro::TokenStream, item: proc_macro::TokenStrea
             
                 inputs.push(transformed_arg);
             }
-                
-            
-
             
 
             let ret = match output {
@@ -55,13 +52,13 @@ pub fn contractimpl(_attr: proc_macro::TokenStream, item: proc_macro::TokenStrea
                     if type_str.contains("Val") {
                         quote! { 
                             pub fn #method_name(#(#inputs),*) #output {
-                                Default::default::<#t>()
+                                Default::default()
                             }
                          }
                     } else {
                         quote! { 
                             pub fn #method_name(#(#inputs),*) #output {
-                                kani::any::<#t>()
+                                kani::any()
                             }
                         }
                     }
