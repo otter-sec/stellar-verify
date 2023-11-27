@@ -8,19 +8,86 @@ use soroban_rs_spec::generate_from_file;
 
 const KANI_UNWIND: usize = 20;
 
-#[proc_macro_attribute]
-pub fn contractimpl(
-    _metadata: proc_macro::TokenStream,
-    input: proc_macro::TokenStream,
-) -> proc_macro::TokenStream {
-    input
-}
 
+#[proc_macro_attribute]
+pub fn contractimpl(_attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = parse_macro_input!(item as syn::ItemImpl);
+    let struct_name = input.self_ty.as_ref();
+
+    let name = if let syn::Type::Path(syn::TypePath { path, .. }) = struct_name {
+        path.segments.last().map(|seg: &syn::PathSegment| seg.ident.clone()).unwrap()
+    } else {
+        return syn::Error::new_spanned(input, "Expected an impl for a struct").to_compile_error().into();
+    };
+
+    let client = syn::Ident::new(&format!("{}Client", name), name.span());
+
+    let methods = input.items.clone().into_iter().filter_map(|item| {
+        if let syn::ImplItem::Method(method) = item {
+            let output = &method.sig.output;
+            let method_name = &method.sig.ident;
+            // let inputs = &method.sig.inputs;
+
+            let mut inputs = Vec::new();
+            inputs.push(syn::parse_quote! { &self });
+            for arg in method.sig.inputs.iter().skip(1) {
+                let transformed_arg = if let FnArg::Typed(pat_type) = arg {
+                    let syn::PatType { pat, ty, attrs, .. } = pat_type;
+                    let new_ty = quote! { &#ty };
+                    syn::parse_quote! { #(#attrs)* #pat: #new_ty }
+                } else {
+                    arg.clone()
+                };
+            
+                inputs.push(transformed_arg);
+            }
+            
+
+            let ret = match output {
+                syn::ReturnType::Default => quote! { 
+                    pub fn #method_name(#(#inputs),*) #output {} 
+                },
+                syn::ReturnType::Type(_, t) => {
+                    let type_str  = t.clone().to_token_stream().to_string();
+                    if type_str.contains("Val") {
+                        quote! { 
+                            pub fn #method_name(#(#inputs),*) #output {
+                                Default::default()
+                            }
+                         }
+                    } else {
+                        quote! { 
+                            pub fn #method_name(#(#inputs),*) #output {
+                                kani::any()
+                            }
+                        }
+                    }
+                }
+            };
+
+            Some(ret)
+
+        } else {
+            None
+        }
+    });
+
+    quote! {
+        #input
+
+        impl<'a> #client<'a> {
+            #( #methods )*
+
+        }
+    }.into()
+}
 
 #[proc_macro_attribute]
 pub fn contract(_metadata: proc_macro::TokenStream, input_: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input_ as syn::ItemStruct);
     let name = &input.ident;
+
+    let client = format_ident!("{}Client", name, span = name.span());
 
     quote! {
         use soroban_sdk::{
@@ -28,6 +95,22 @@ pub fn contract(_metadata: proc_macro::TokenStream, input_: proc_macro::TokenStr
         };
 
         #input
+
+        pub struct #client<'a> {
+            pub env: soroban_sdk::Env,
+            pub address: soroban_sdk::Address,
+            _phantom: core::marker::PhantomData<&'a ()>,
+        }
+
+        impl<'a> #client<'a> {
+            pub fn new(env: &soroban_sdk::Env, address: &soroban_sdk::Address) -> Self {
+                Self {
+                    env: env.clone(),
+                    address: address.clone(),
+                    _phantom: core::marker::PhantomData,
+                }
+            }
+        }
 
         impl #name {
             fn create_token_contract<'a>(e: &Env, admin: &Address) -> (TokenClient, TokenAdminClient) {
