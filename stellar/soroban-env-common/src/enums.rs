@@ -1,4 +1,6 @@
-use crate::{Symbol, Vec};
+use crate::Symbol;
+extern crate alloc;
+use alloc::vec::Vec;
 
 // Define a EnumVal type which stores Symbol and Val
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]

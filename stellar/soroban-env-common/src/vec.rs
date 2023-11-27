@@ -3,7 +3,7 @@ use std::ops;
 
 use crate::{FromValEnum, ToValEnum, Val};
 
-const VEC_SIZE: usize = 10;
+const VEC_SIZE: usize = 32;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Hash)]
 pub struct Vec<T> {

@@ -6,7 +6,7 @@ use syn::{
 };
 use soroban_rs_spec::generate_from_file;
 
-const KANI_UNWIND: usize = 20;
+const KANI_UNWIND: usize = 33;
 
 
 #[proc_macro_attribute]
@@ -91,8 +91,10 @@ pub fn contract(_metadata: proc_macro::TokenStream, input_: proc_macro::TokenStr
 
     quote! {
         use soroban_sdk::{
-            token::AdminClient as TokenAdminClient, token::Client as TokenClient, verify, kani
+            token::AdminClient as TokenAdminClient, token::Client as TokenClient, verify,
         };
+        #[cfg(any(kani, feature = "kani"))]
+        use soroban_sdk::kani;
 
         #input
 
@@ -494,8 +496,11 @@ fn generate_to_val_enum(enum_data: &DataEnum, enum_name: &Ident) -> proc_macro2:
                 let arm = match &variant.fields {
                     Fields::Unit => {
                         quote! {
-                            #enum_name::#variant_ident => soroban_sdk::Val::VecVal(
-                                vec![soroban_sdk::Val::SymbolVal(soroban_sdk::symbol_short!(#variant_name))]
+                            #enum_name::#variant_ident => soroban_sdk::Val::EnumVal(
+                                soroban_sdk::EnumType {
+                                    variant: soroban_sdk::symbol_short!(#variant_name),
+                                    value: alloc::vec::Vec::new().into(),
+                                }
                             ),
                         }
                     },
@@ -510,10 +515,12 @@ fn generate_to_val_enum(enum_data: &DataEnum, enum_name: &Ident) -> proc_macro2:
                     },
                     Fields::Unnamed(_) => {
                         quote! {
-                            #enum_name::#variant_ident(data) => soroban_sdk::Val::VecVal(vec![
-                                soroban_sdk::Val::SymbolVal(soroban_sdk::symbol_short!(#variant_name)),
-                                data.to_val(),
-                            ]),
+                            #enum_name::#variant_ident(data) => soroban_sdk::Val::EnumVal(
+                                soroban_sdk::EnumType {
+                                    variant: soroban_sdk::symbol_short!(#variant_name),
+                                    value: data.to_le_bytes().to_vec().into(),
+                                }
+                            ),
                         }
                     }
                 };
@@ -557,9 +564,14 @@ fn generate_from_val_enum(data: &DataEnum, enum_name: &Ident) -> proc_macro2::To
                         }
 
                     },
-                    Fields::Unnamed(_) => {
+                    Fields::Unnamed(unnamed_feilds) => {
+                        let ty = &unnamed_feilds.unnamed.last().unwrap().ty;
                         quote! {
-                            #variant_name => Some(#enum_name::#variant_ident(vec[1].clone().into())),
+                            #variant_name => Some(#enum_name::#variant_ident(
+                                <#ty>::from_le_bytes(
+                                    enumval.value.try_into().unwrap()
+                                )
+                            )),
                         }
                     },
                 };
@@ -575,14 +587,12 @@ fn generate_from_val_enum(data: &DataEnum, enum_name: &Ident) -> proc_macro2::To
             quote!{
                 impl soroban_sdk::FromValEnum for #enum_name {
                     fn from_val(val: soroban_sdk::Val) -> Option<Self> {
-                        match val {
-                            soroban_sdk::Val::VecVal(vec) => match &vec[0] {
-                                soroban_sdk::Val::SymbolVal(sym) => match sym.to_string().as_str() {
-                                    #arms
-                                }
-                                _ => None,
+                        if let soroban_sdk::Val::EnumVal(enumval) = val {
+                            match enumval.variant.as_str() {
+                                #arms
                             }
-                            _ => None,
+                        }  else {
+                            None
                         }
                     }
                 }
