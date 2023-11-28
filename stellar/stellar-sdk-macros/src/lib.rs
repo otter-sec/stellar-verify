@@ -75,6 +75,7 @@ pub fn contractimpl(_attr: proc_macro::TokenStream, item: proc_macro::TokenStrea
     quote! {
         #input
 
+        #[cfg(any(kani, feature = "kani"))]
         impl<'a> #client<'a> {
             #( #methods )*
 
