@@ -11,6 +11,10 @@ pub struct State {
     pub last_incr: u32,
 }
 
+#[contracttype]
+#[derive(Clone)]
+pub struct Pair(Address, Address);
+
 const STATE: Symbol = symbol_short!("STATE");
 
 #[contract]

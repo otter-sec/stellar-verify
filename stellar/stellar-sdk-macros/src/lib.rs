@@ -2,7 +2,7 @@ use darling::{ast::NestedMeta, FromMeta};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::{
-    parse_macro_input, Block, Data, DeriveInput, Error, Expr, Fields, FieldsNamed, FnArg, ItemFn, Pat, PatIdent, DataEnum,
+    parse_macro_input, Block, Data, DeriveInput, Error, Expr, Fields, FieldsNamed, FnArg, ItemFn, Pat, PatIdent, DataEnum, FieldsUnnamed,
 };
 use soroban_rs_spec::generate_from_file;
 
@@ -354,11 +354,32 @@ pub fn contracttype(
 
                     return result.into();
                 },
-                Fields::Unnamed(_) => Error::new(
-                    ident.span(),
-                    "tuple structs are not supported as contract types",
-                )
-                .to_compile_error(),
+                Fields::Unnamed(FieldsUnnamed { unnamed, .. }) => {
+                    // Get the name of the struct
+                    let struct_name = &input.ident;
+
+                    // Generate the serialization code
+                    let serialize_code = generate_serialize_code_unnamed(unnamed);
+
+                    // Generate the deserialization code
+                    let deserialize_code = generate_deserialize_code_unnamed(unnamed);
+
+                    // Generate the code for the FromValEnum and ToValEnum traits
+                    let traits_code = generate_traits_for_structs(struct_name.clone());
+
+                    // Combine serialization and deserialization code
+                    let result = quote! {
+                        #input
+                        impl #struct_name {
+                            #serialize_code
+                            #deserialize_code
+                        }
+                        #traits_code
+                    };
+
+                    return result.into();
+
+                },
                 Fields::Unit => Error::new(
                     ident.span(),
                     "unit structs are not supported as contract types",
@@ -375,8 +396,6 @@ pub fn contracttype(
 
                     #from_val_enum_impl
                 };
-                
-
 
                 expanded
             },
@@ -472,6 +491,63 @@ fn generate_deserialize_code(
             Self {
                 #( #field_names ),*
             }
+        }
+    }
+}
+
+fn generate_serialize_code_unnamed(
+    fields: &syn::punctuated::Punctuated<syn::Field, syn::token::Comma>,
+) -> proc_macro2::TokenStream {
+    let field_serialization_statements = fields.iter().enumerate().map(|(i, field)| {
+        let field_ty = &field.ty;
+        quote! {
+            let mut field_bytes = [0u8; core::mem::size_of::<#field_ty>()];
+            field_bytes.copy_from_slice(&self.#i.to_le_bytes());
+            result.extend_from_slice(&field_bytes);
+        }
+    });
+
+    quote! {
+        pub fn serialize(&self) -> Vec<u8> {
+            let mut result = Vec::new();
+            #( #field_serialization_statements )*
+            result
+        }
+    }
+}
+
+fn generate_deserialize_code_unnamed(
+    fields: &syn::punctuated::Punctuated<syn::Field, syn::token::Comma>,
+) -> proc_macro2::TokenStream {
+    let field_deserialization_statements = fields.iter().enumerate().map(|(i, field)| {
+        let field_ty = &field.ty;
+        let field_index = syn::Index::from(i);
+        let field_name = Ident::new(&format!("field_{}", i), field_index.span);
+
+        let field_name_bytes = format_ident!("{}_bytes", field_name);
+        quote! {
+            let mut #field_name_bytes = [0u8; core::mem::size_of::<#field_ty>()];
+            #field_name_bytes.copy_from_slice(&buf[offset..offset + core::mem::size_of::<#field_ty>()]);
+            let #field_name = <#field_ty>::from_le_bytes(#field_name_bytes);
+            offset += core::mem::size_of::<#field_ty>();
+        }
+    });
+
+    let field_statements = fields.iter().enumerate().map(|(i, _)| {
+        let field_index = syn::Index::from(i);
+        let field_name = Ident::new(&format!("field_{}", i), field_index.span);
+        quote! {
+            #field_name
+        }
+    });
+
+    quote! {
+        pub fn deserialize(buf: &[u8]) -> Self {
+            let mut offset = 0;
+            #( #field_deserialization_statements )*
+            Self(
+                #( #field_statements ),*
+            )
         }
     }
 }
