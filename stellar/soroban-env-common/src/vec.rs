@@ -7,7 +7,6 @@ const VEC_SIZE: usize = 32;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Hash)]
 pub struct Vec<T> {
-    pub env: Env,
     pub data: [T; VEC_SIZE],
     pub size: usize,
 }
@@ -26,7 +25,6 @@ pub struct VecIntoIterator<T> {
 impl<T: Default> Default for Vec<T> {
     fn default() -> Self {
         Vec {
-            env: Default::default(),
             data: Default::default(),
             size: 0,
         }
@@ -39,7 +37,6 @@ impl<T> Vec<T> {
         T: Default,
     {
         Vec {
-            env: _env,
             data: Default::default(),
             size: 0,
         }
@@ -63,8 +60,8 @@ impl<T> Vec<T> {
         v
     }
 
-    pub fn env(&self) -> &Env {
-        &self.env
+    pub fn env(&self) -> Env {
+        Env::default()
     }
 
     pub fn push(&mut self, t: T) {
