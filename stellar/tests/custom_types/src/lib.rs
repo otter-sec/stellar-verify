@@ -66,5 +66,12 @@ mod test {
         let state = IncrementContract::get_state(env.clone());
         assert!(state.count == 101);
         assert!(state.last_incr == 101);
+        let a1 = Address::new(&env);
+        let a2 = Address::new(&env);
+        let p1 = Pair(a1, a2);
+        let serialized_bytes = Pair::serialize(&p1);
+        let deserialized_pair = Pair::deserialize(&serialized_bytes);
+        assert!(deserialized_pair.0 == a1);
+        assert!(deserialized_pair.1 == a2);
     }
 }
