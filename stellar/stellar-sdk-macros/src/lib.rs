@@ -91,7 +91,7 @@ pub fn contract(_metadata: proc_macro::TokenStream, input_: proc_macro::TokenStr
 
     quote! {
         use soroban_sdk::{
-            token::AdminClient as TokenAdminClient, token::Client as TokenClient, verify,
+            token::AdminClient as TokenAdminClient, token::Client as TokenClient, verify, EnvTrait
         };
         #[cfg(any(kani, feature = "kani"))]
         use soroban_sdk::kani;
