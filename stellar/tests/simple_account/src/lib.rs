@@ -4,7 +4,7 @@
 struct SimpleAccount;
 
 use soroban_sdk::{
-    auth::Context, contract, contractimpl, symbol_short, Address, BytesN, Env, EnvTrait, Symbol,
+    auth::Context, contract, contractimpl, symbol_short, Address, BytesN, Env, Symbol,
     Vec,
 };
 
