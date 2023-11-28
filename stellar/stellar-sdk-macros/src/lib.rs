@@ -6,7 +6,7 @@ use syn::{
 };
 use soroban_rs_spec::generate_from_file;
 
-const KANI_UNWIND: usize = 33;
+const KANI_UNWIND: usize = 20;
 
 
 #[proc_macro_attribute]
