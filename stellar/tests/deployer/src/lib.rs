@@ -1,6 +1,5 @@
 #![no_std]
 
-use crate::env::EnvTrait;
 use soroban_sdk::{contract, contractimpl, Address, BytesN, Env, Symbol, Val, Vec};
 #[contract]
 pub struct Deployer;
@@ -19,7 +18,7 @@ impl Deployer {
         verify,
         init({
             // let init_fn = Symbol::new_from_str("init_fn");
-            let init_args = Vec::new();
+            let init_args = Vec::new(env.clone());
         })
     )]
     pub fn deploy(
