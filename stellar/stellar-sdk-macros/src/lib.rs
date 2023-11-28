@@ -6,7 +6,7 @@ use syn::{
 };
 use soroban_rs_spec::generate_from_file;
 
-const KANI_UNWIND: usize = 33;
+const KANI_UNWIND: usize = 20;
 
 
 #[proc_macro_attribute]
@@ -398,9 +398,18 @@ pub fn contracttype(
 pub fn contracterror(_attrs: proc_macro::TokenStream, input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as syn::ItemEnum);
 
+    let enum_name = &input.ident;
+
     // The rest remains the same
     let expanded = quote! {
         #input
+
+        #[cfg(kani)]
+        impl kani::Arbitrary for #enum_name {
+            fn any() -> Self {
+                kani::any()
+            }
+        }
     };
 
     expanded.into()
