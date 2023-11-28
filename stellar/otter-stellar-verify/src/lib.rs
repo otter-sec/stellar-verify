@@ -51,7 +51,7 @@ macro_rules! log {
 #[macro_export]
 macro_rules! vec {
     () => (
-        ($crate::Vec::new())
+        ($crate::Vec::new(Env::default()))
     );
     ($elem:expr; $n:expr) => (
         ($crate::Vec::from([$elem; $n]))

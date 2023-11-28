@@ -3,8 +3,8 @@ use soroban_env_common::{env::internal, Env, FromValEnum, IntoVal, ToValEnum, Ve
 pub struct Bytes(pub Vec<u8>);
 
 impl Bytes {
-    pub fn new(_env: Env) -> Self {
-        Self(Vec::new())
+    pub fn new(env: Env) -> Self {
+        Self(Vec::new(env))
     }
 
     pub fn as_slice(&self) -> &[u8] {
@@ -121,7 +121,7 @@ impl Bytes {
 #[cfg(any(kani, feature = "kani"))]
 impl kani::Arbitrary for Bytes {
     fn any() -> Self {
-        let mut v = Vec::new();
+        let mut v = Vec::new(Env::default());
         for _ in 0..kani::any::<u8>() % 10 {
             v.push(kani::any());
         }
@@ -134,7 +134,7 @@ pub struct BytesN<const N: usize>(pub Vec<u8>);
 
 impl<const N: usize> Default for BytesN<N> {
     fn default() -> Self {
-        BytesN(Vec::new())
+        BytesN(Vec::new(Env::default()))
     }
 }
 
@@ -261,7 +261,7 @@ impl From<BytesN<32>> for Bytes {
 #[cfg(any(kani, feature = "kani"))]
 impl<const N: usize> kani::Arbitrary for BytesN<N> {
     fn any() -> Self {
-        let mut v = Vec::new();
+        let mut v = Vec::new(Env::default());
         for _ in 0..N {
             v.push(kani::any::<u8>());
         }
