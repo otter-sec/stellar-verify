@@ -3,7 +3,7 @@ use std::ops;
 
 use crate::{Env, FromValEnum, ToValEnum, Val};
 
-const VEC_SIZE: usize = 32;
+const VEC_SIZE: usize = 10;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Hash)]
 pub struct Vec<T> {
@@ -65,8 +65,10 @@ impl<T> Vec<T> {
     }
 
     pub fn push(&mut self, t: T) {
+        // if self.size < 10 {
         self.data[self.size] = t;
         self.size += 1;
+        // }
     }
 
     pub fn pop(&mut self) {
