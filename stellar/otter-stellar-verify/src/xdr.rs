@@ -1,5 +1,5 @@
-use crate::{bytes::Bytes, Env};
-use soroban_env_common::ConversionError;
+use crate::Bytes;
+use soroban_env_common::{ConversionError, Env};
 
 #[cfg(any(kani, feature = "kani"))]
 use soroban_env_common::{FromValEnum, ToValEnum};

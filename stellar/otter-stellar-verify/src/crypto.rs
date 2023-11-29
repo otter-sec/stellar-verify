@@ -1,4 +1,5 @@
-use crate::{Bytes, BytesN, Env};
+use crate::{Bytes, BytesN};
+use soroban_env_common::Env;
 
 pub struct Crypto {
     env: Env,

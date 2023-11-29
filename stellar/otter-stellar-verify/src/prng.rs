@@ -1,7 +1,8 @@
 #[cfg(any(kani, feature = "kani"))]
 use core::ops::{Bound, RangeBounds};
 
-use crate::{Bytes, Env, ToValEnum, Val};
+use crate::Bytes;
+use soroban_env_common::{Env, ToValEnum, Val};
 
 pub struct Prng {
     env: Env,

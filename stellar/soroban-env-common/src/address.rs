@@ -1,18 +1,16 @@
 use std::fmt::Display;
 
-use soroban_env_common::{FromValEnum, ToValEnum};
-
-use crate::{env::internal, Env, IntoVal};
+use crate::{env::internal, Env, FromValEnum, IntoVal, ToValEnum};
 
 #[derive(Debug, Hash, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Default)]
 pub struct Address {
     pub val: u8,
 }
 
-impl From<soroban_env_common::Val> for Address {
-    fn from(val: soroban_env_common::Val) -> Self {
+impl From<crate::Val> for Address {
+    fn from(val: crate::Val) -> Self {
         match val {
-            soroban_env_common::Val::AddressObj(address) => Address { val: address as u8 },
+            crate::Val::AddressObj(address) => Address { val: address as u8 },
             _ => panic!("Error"),
         }
     }
