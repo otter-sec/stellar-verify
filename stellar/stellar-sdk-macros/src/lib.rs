@@ -241,7 +241,7 @@ pub fn verify(
             let env_clone = env.clone();
 
             // Register the contract
-            let _ = env.register_contract(None);
+            let _ = env.register_contract(None, 0);
 
             // Assume the preconditions
             kani::assume(

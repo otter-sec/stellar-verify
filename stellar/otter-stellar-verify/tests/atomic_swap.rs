@@ -105,7 +105,7 @@ mod test {
         token_a_admin.mint(&a, &1000);
         token_b_admin.mint(&b, &5000);
 
-        let _ = env.register_contract(None);
+        let _ = env.register_contract(None, AtomicSwapContract);
         AtomicSwapContract::swap(
             env.clone(),
             a,
@@ -168,7 +168,7 @@ mod verification {
         kani::assume(amount_b > min_b_for_a);
         kani::assume(amount_a > min_a_for_b);
 
-        let _ = env.register_contract(None);
+        let _ = env.register_contract(None, AtomicSwapContract);
         // Call the contract.
         AtomicSwapContract::swap(
             env.clone(),

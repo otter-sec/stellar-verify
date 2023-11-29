@@ -77,7 +77,7 @@ impl Env {
         contract_address
     }
 
-    pub fn register_contract(&self, _contract_id: Option<Address>) -> Address {
+    pub fn register_contract<T>(&self, _contract_id: Option<Address>, _contract: T) -> Address {
         let contract_address = Address::new(self);
         unsafe {
             CURRENT_CONTRACT = contract_address.val;
