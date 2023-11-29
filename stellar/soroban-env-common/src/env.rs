@@ -1,4 +1,4 @@
-use crate::{Address, MockToken, Storage, Val};
+use crate::{Address, MockToken, Storage, String, Val};
 use std::fmt::Debug;
 use std::{
     cell::{Ref, RefCell},
@@ -67,8 +67,8 @@ impl Env {
         let contract_address = Address::new(self);
         let token = MockToken::new(
             contract_address,
-            "Stellar Lumens".to_string(),
-            "XLM".to_string(),
+            "Stellar Lumens".into(),
+            "XLM".into(),
             7,
             100_000_000_000,
             admin,

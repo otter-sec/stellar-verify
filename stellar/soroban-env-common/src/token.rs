@@ -1,4 +1,4 @@
-use crate::{address::Address, env::Env};
+use crate::{address::Address, env::Env, string::String};
 
 #[derive(Clone, Debug, Default)]
 pub struct MockToken {
