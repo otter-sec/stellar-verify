@@ -23,7 +23,7 @@ pub fn contractimpl(_attr: proc_macro::TokenStream, item: proc_macro::TokenStrea
     let client = syn::Ident::new(&format!("{}Client", name), name.span());
 
     let methods = input.items.clone().into_iter().filter_map(|item| {
-        if let syn::ImplItem::Method(method) = item {
+        if let syn::ImplItem::Fn(method) = item {
             let output = &method.sig.output;
             let method_name = &method.sig.ident;
             // let inputs = &method.sig.inputs;
@@ -92,7 +92,7 @@ pub fn contract(_metadata: proc_macro::TokenStream, input_: proc_macro::TokenStr
 
     quote! {
         use soroban_sdk::{
-            token::AdminClient as TokenAdminClient_, token::Client as TokenClient_, verify, EnvTrait
+            token::AdminClient as TokenAdminClient, token::Client as TokenClient, verify, EnvTrait
         };
         #[cfg(any(kani, feature = "kani"))]
         use soroban_sdk::kani;
@@ -116,11 +116,11 @@ pub fn contract(_metadata: proc_macro::TokenStream, input_: proc_macro::TokenStr
         }
 
         impl #name {
-            fn create_token_contract<'a>(e: &Env, admin: &Address) -> (TokenClient_, TokenAdminClient_) {
+            fn create_token_contract<'a>(e: &Env, admin: &Address) -> (TokenClient, TokenAdminClient) {
                 let contract_address = e.register_stellar_asset_contract(admin.clone());
                 (
-                    TokenClient_::new(e, &contract_address),
-                    TokenAdminClient_::new(e, &contract_address),
+                    TokenClient::new(e, &contract_address),
+                    TokenAdminClient::new(e, &contract_address),
                 )
             }
         }
@@ -146,11 +146,11 @@ pub fn verify(
     let mut succeeds_if: Option<TokenStream> = None;
     let mut postcondition: Option<TokenStream> = None;
     for attr in std::mem::take(&mut item_fn.attrs).into_iter() {
-        if attr.path.is_ident("init") {
+        if attr.path().is_ident("init") {
             precondition = attr.parse_args::<Expr>().unwrap().to_token_stream();
-        } else if attr.path.is_ident("succeeds_if") {
+        } else if attr.path().is_ident("succeeds_if") {
             succeeds_if = Some(attr.parse_args::<Expr>().unwrap().to_token_stream());
-        } else if attr.path.is_ident("post_condition") {
+        } else if attr.path().is_ident("post_condition") {
             postcondition = Some(attr.parse_args::<Expr>().unwrap().to_token_stream());
         } else {
             item_fn.attrs.push(attr);
@@ -342,12 +342,16 @@ pub fn contracttype(
                     // Generate the code for the FromValEnum and ToValEnum traits
                     let traits_code = generate_traits_for_structs(struct_name.clone());
 
+                    // Generate to_le_bytes and from_le_bytes 
+                    let to_from_bytes = generate_from_to_le_bytes(struct_name.clone());
+
                     // Combine serialization and deserialization code
                     let result = quote! {
                         #input
                         impl #struct_name {
                             #serialize_code
                             #deserialize_code
+                            #to_from_bytes
                         }
                         #traits_code
                     };
@@ -367,12 +371,16 @@ pub fn contracttype(
                     // Generate the code for the FromValEnum and ToValEnum traits
                     let traits_code = generate_traits_for_structs(struct_name.clone());
 
+                    // Generate to_le_bytes and from_le_bytes 
+                    let to_from_bytes = generate_from_to_le_bytes(struct_name.clone());
+
                     // Combine serialization and deserialization code
                     let result = quote! {
                         #input
                         impl #struct_name {
                             #serialize_code
                             #deserialize_code
+                            #to_from_bytes
                         }
                         #traits_code
                     };
@@ -567,6 +575,18 @@ fn generate_traits_for_structs(name:Ident) -> proc_macro2::TokenStream {
             fn to_val(&self) -> soroban_sdk::Val {
                 soroban_sdk::Val::Struct(self.serialize())
             }
+        }
+    }
+}
+
+fn generate_from_to_le_bytes(name:Ident) -> proc_macro2::TokenStream {
+    quote!{
+        fn to_le_bytes(&self) -> alloc::vec::Vec<u8> {
+            self.serialize()
+        }
+
+        fn from_le_bytes(bytes: alloc::vec::Vec<u8>) -> #name {
+            #name::deserialize(&bytes)
         }
     }
 }
