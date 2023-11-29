@@ -92,7 +92,7 @@ pub fn contract(_metadata: proc_macro::TokenStream, input_: proc_macro::TokenStr
 
     quote! {
         use soroban_sdk::{
-            token::AdminClient as TokenAdminClient, token::Client as TokenClient, verify, EnvTrait
+            token::AdminClient as TokenAdminClient_, token::Client as TokenClient_, verify, EnvTrait
         };
         #[cfg(any(kani, feature = "kani"))]
         use soroban_sdk::kani;
@@ -116,11 +116,11 @@ pub fn contract(_metadata: proc_macro::TokenStream, input_: proc_macro::TokenStr
         }
 
         impl #name {
-            fn create_token_contract<'a>(e: &Env, admin: &Address) -> (TokenClient, TokenAdminClient) {
+            fn create_token_contract<'a>(e: &Env, admin: &Address) -> (TokenClient_, TokenAdminClient_) {
                 let contract_address = e.register_stellar_asset_contract(admin.clone());
                 (
-                    TokenClient::new(e, &contract_address),
-                    TokenAdminClient::new(e, &contract_address),
+                    TokenClient_::new(e, &contract_address),
+                    TokenAdminClient_::new(e, &contract_address),
                 )
             }
         }
