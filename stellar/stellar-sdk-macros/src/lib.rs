@@ -139,6 +139,7 @@ pub fn verify(
     };
 
     let function_name = item_fn.sig.ident.clone();
+    let visiblity = item_fn.vis.clone();
 
     let mut precondition: TokenStream = quote! {
        {}
@@ -231,7 +232,7 @@ pub fn verify(
         #[kani::proof]
         #[kani::unwind(#KANI_UNWIND)]
         #[kani::solver(kissat)]
-        pub fn #proof_name() {
+        #visiblity fn #proof_name() {
 
             // First: Initialize the environment and declare the variables
             #(#arg_initializations)*
