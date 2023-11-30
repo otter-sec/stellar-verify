@@ -41,11 +41,11 @@ impl Bytes {
     }
 
     pub fn get_unchecked(&self, i: u32) -> u8 {
-        *self.0.get(i as usize).unwrap()
+        *self.0.get(i).unwrap()
     }
 
     pub fn len(&self) -> u32 {
-        self.0.len() as u32
+        self.0.len()
     }
 
     pub fn is_empty(&self) -> bool {
@@ -73,7 +73,7 @@ impl Bytes {
     }
 
     pub fn last_unchecked(&self) -> u8 {
-        *self.0.get(self.len() as usize - 1).unwrap()
+        *self.0.get(self.len() - 1).unwrap()
     }
 
     pub fn remove(&mut self, i: u32) -> Option<()> {
@@ -147,7 +147,7 @@ impl<const N: usize> ToValEnum for BytesN<N> {
 impl<const N: usize> FromValEnum for BytesN<N> {
     fn from_val(val: crate::Val) -> Option<Self> {
         if let crate::Val::BytesNVal(u) = val {
-            if u.len() == N / 8 {
+            if u.len() as usize == N / 8 {
                 Some(BytesN(u))
             } else {
                 None
@@ -161,7 +161,7 @@ impl<const N: usize> FromValEnum for BytesN<N> {
 impl<const N: usize> From<soroban_env_common::Val> for BytesN<N> {
     fn from(val: crate::Val) -> Self {
         if let crate::Val::BytesNVal(u) = val {
-            if u.len() == N / 8 {
+            if u.len() as usize == N / 8 {
                 BytesN(u)
             } else {
                 panic!("Error")
@@ -183,7 +183,7 @@ impl<const N: usize> BytesN<N> {
         let mut result = [0u8; N];
 
         // Copy as many bytes as possible, up to N
-        let len = self.0.len().min(N);
+        let len = self.0.len().min(N as u32) as usize;
         result[..len].copy_from_slice(&self.0[..len]);
 
         result
@@ -276,7 +276,7 @@ impl<E: internal::Env> IntoVal<E, BytesN<32>> for BytesN<32> {
 impl<const N: usize> From<Box<crate::Val>> for BytesN<N> {
     fn from(value: Box<crate::Val>) -> Self {
         if let crate::Val::BytesNVal(u) = *value {
-            if u.len() == N / 8 {
+            if u.len() as usize == N / 8 {
                 BytesN(u)
             } else {
                 panic!("Err")

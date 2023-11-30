@@ -87,8 +87,8 @@ impl<T> Vec<T> {
         self.size += 1;
     }
 
-    pub fn len(&self) -> usize {
-        self.size
+    pub fn len(&self) -> u32 {
+        self.size as u32
     }
 
     pub fn is_empty(&self) -> bool {
@@ -99,7 +99,8 @@ impl<T> Vec<T> {
         VecIterator { vec: self, idx: 0 }
     }
 
-    pub fn get(&self, idx: usize) -> Option<&T> {
+    pub fn get(&self, idx: u32) -> Option<&T> {
+        let idx = idx as usize;
         if idx >= self.size {
             return None;
         }
@@ -287,7 +288,7 @@ impl<T: Default> From<std::vec::Vec<T>> for Vec<T> {
 impl<T: Default + FromValEnum> FromValEnum for Vec<T> {
     fn from_val(val: Val) -> Option<Self> {
         if let Val::VecVal(u) = val {
-            if u.len() > VEC_SIZE {
+            if u.len() as usize > VEC_SIZE {
                 None
             } else {
                 let mut v = Vec::new(Env::default());
