@@ -41,7 +41,7 @@ impl Bytes {
     }
 
     pub fn get_unchecked(&self, i: u32) -> u8 {
-        *self.0.get(i).unwrap()
+        self.0.get(i).unwrap()
     }
 
     pub fn len(&self) -> u32 {
@@ -73,7 +73,7 @@ impl Bytes {
     }
 
     pub fn last_unchecked(&self) -> u8 {
-        *self.0.get(self.len() - 1).unwrap()
+        self.0.get(self.len() - 1).unwrap()
     }
 
     pub fn remove(&mut self, i: u32) -> Option<()> {
@@ -129,7 +129,7 @@ impl kani::Arbitrary for Bytes {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct BytesN<const N: usize>(pub Vec<u8>);
 
 impl<const N: usize> Default for BytesN<N> {

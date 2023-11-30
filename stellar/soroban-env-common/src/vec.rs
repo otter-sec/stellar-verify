@@ -1,11 +1,11 @@
 use core::slice;
 use std::ops;
 
-use crate::{Env, FromValEnum, ToValEnum, Val};
+use crate::{Env, FromValEnum, ToValEnum, TryFromVal, Val};
 
 const VEC_SIZE: usize = 10;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord)]
 pub struct Vec<T> {
     pub data: [T; VEC_SIZE],
     pub size: usize,
@@ -101,13 +101,16 @@ impl<T> Vec<T> {
         VecIterator { vec: self, idx: 0 }
     }
 
-    pub fn get(&self, idx: u32) -> Option<&T> {
+    pub fn get(&self, idx: u32) -> Option<T>
+    where
+        T: Copy,
+    {
         let idx = idx as usize;
         if idx >= self.size {
             return None;
         }
 
-        Some(&self.data[idx])
+        Some(self.data[idx])
     }
 
     pub fn contains(&self, t: &T) -> bool
