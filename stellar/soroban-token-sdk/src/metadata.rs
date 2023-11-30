@@ -2,6 +2,7 @@ use soroban_sdk::{contracttype, symbol_short, Env, String, Symbol};
 
 const _METADATA_KEY: Symbol = symbol_short!("METADATA");
 
+extern crate alloc;
 #[derive(Clone)]
 #[contracttype]
 pub struct TokenMetadata {

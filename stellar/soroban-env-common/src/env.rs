@@ -1,4 +1,4 @@
-use crate::{Address, MockToken, Storage, String, Val};
+use crate::{Address, MockToken, Storage, Val};
 use std::fmt::Debug;
 use std::{
     cell::{Ref, RefCell},

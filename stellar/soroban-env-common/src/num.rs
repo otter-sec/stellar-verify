@@ -74,6 +74,12 @@ impl FromValEnum for u32 {
     }
 }
 
+impl From<u32> for Val {
+    fn from(i: u32) -> Self {
+        Val::U32Val(i)
+    }
+}
+
 impl ToValEnum for i32 {
     fn to_val(&self) -> Val {
         Val::I32Val(*self)

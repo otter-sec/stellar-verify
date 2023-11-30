@@ -23,7 +23,7 @@ pub fn contractimpl(_attr: proc_macro::TokenStream, item: proc_macro::TokenStrea
     let client = syn::Ident::new(&format!("{}Client", name), name.span());
 
     let methods = input.items.clone().into_iter().filter_map(|item| {
-        if let syn::ImplItem::Method(method) = item {
+        if let syn::ImplItem::Fn(method) = item {
             let output = &method.sig.output;
             let method_name = &method.sig.ident;
             // let inputs = &method.sig.inputs;
@@ -92,7 +92,7 @@ pub fn contract(_metadata: proc_macro::TokenStream, input_: proc_macro::TokenStr
 
     quote! {
         use soroban_sdk::{
-            token::AdminClient as TokenAdminClient_, token::Client as TokenClient_, verify, EnvTrait
+            token::AdminClient as TokenAdminClient, token::Client as TokenClient, verify, EnvTrait
         };
         #[cfg(any(kani, feature = "kani"))]
         use soroban_sdk::kani;
@@ -116,11 +116,11 @@ pub fn contract(_metadata: proc_macro::TokenStream, input_: proc_macro::TokenStr
         }
 
         impl #name {
-            fn create_token_contract<'a>(e: &Env, admin: &Address) -> (TokenClient_, TokenAdminClient_) {
+            fn create_token_contract<'a>(e: &Env, admin: &Address) -> (TokenClient, TokenAdminClient) {
                 let contract_address = e.register_stellar_asset_contract(admin.clone());
                 (
-                    TokenClient_::new(e, &contract_address),
-                    TokenAdminClient_::new(e, &contract_address),
+                    TokenClient::new(e, &contract_address),
+                    TokenAdminClient::new(e, &contract_address),
                 )
             }
         }
@@ -139,6 +139,7 @@ pub fn verify(
     };
 
     let function_name = item_fn.sig.ident.clone();
+    let visiblity = item_fn.vis.clone();
 
     let mut precondition: TokenStream = quote! {
        {}
@@ -146,11 +147,11 @@ pub fn verify(
     let mut succeeds_if: Option<TokenStream> = None;
     let mut postcondition: Option<TokenStream> = None;
     for attr in std::mem::take(&mut item_fn.attrs).into_iter() {
-        if attr.path.is_ident("init") {
+        if attr.path().is_ident("init") {
             precondition = attr.parse_args::<Expr>().unwrap().to_token_stream();
-        } else if attr.path.is_ident("succeeds_if") {
+        } else if attr.path().is_ident("succeeds_if") {
             succeeds_if = Some(attr.parse_args::<Expr>().unwrap().to_token_stream());
-        } else if attr.path.is_ident("post_condition") {
+        } else if attr.path().is_ident("post_condition") {
             postcondition = Some(attr.parse_args::<Expr>().unwrap().to_token_stream());
         } else {
             item_fn.attrs.push(attr);
@@ -186,6 +187,7 @@ pub fn verify(
     // Create a Vec to store the input argument names
     let mut arg_names = Vec::new();
     let mut arg_initializations = Vec::new();
+    let mut env_clone_register_contract = Vec::new();
 
     // Iterate over the function's arguments and add their names to the Vec
     for input_arg in &item_fn.sig.inputs {
@@ -193,19 +195,32 @@ pub fn verify(
             if let Pat::Ident(PatIdent { ident, .. }) = &*pat.pat {
                 let arg_name = ident.clone();
                 let arg_ty = &pat.ty;
-                if arg_name == "env" {
-                    // Create new variable name for the cloned environment as env_clone
-                    arg_names.push(Ident::new("env_clone", arg_name.span()));
-                    arg_initializations.push(quote! {
-                        let #arg_name = Env::default();
-                    });
-                    continue;
-                } else {
-                    arg_names.push(arg_name.clone());
-                    if !inited_vars.contains(&arg_name.clone()) {
-                        arg_initializations.push(quote! {
-                            let #arg_name = kani::any::<#arg_ty>();
-                        }); 
+
+                if let syn::Type::Path(path) = arg_ty.as_ref() {
+                    if let Some(segment) = path.path.segments.first() {
+                        if segment.ident == "Env" {
+                            // The argument type is Env
+                            let cloned_env = format_ident!("{}_clone", arg_name, span = arg_name.span());
+                            arg_names.push(cloned_env.clone());
+                            arg_initializations.push(quote! {
+                                let #arg_name = Env::default();
+                            });
+                            env_clone_register_contract.push(
+                                quote! {
+                                    // Clone the environment
+                                    let #cloned_env = #arg_name.clone();
+                                    // Register the contract
+                                    let _ = #arg_name.register_contract(None, 0);
+                                }
+                            );
+                        } else {
+                            arg_names.push(arg_name.clone());
+                            if !inited_vars.contains(&arg_name.clone()) {
+                                arg_initializations.push(quote! {
+                                    let #arg_name = kani::any::<#arg_ty>();
+                                }); 
+                            }
+                        }
                     }
                 }
             }
@@ -231,17 +246,13 @@ pub fn verify(
         #[kani::proof]
         #[kani::unwind(#KANI_UNWIND)]
         #[kani::solver(kissat)]
-        pub fn #proof_name() {
+        #visiblity fn #proof_name() {
 
             // First: Initialize the environment and declare the variables
             #(#arg_initializations)*
             #(#extracted_content)*
 
-            // Clone the environment
-            let env_clone = env.clone();
-
-            // Register the contract
-            let _ = env.register_contract(None, 0);
+            #(#env_clone_register_contract)*
 
             // Assume the preconditions
             kani::assume(
@@ -342,12 +353,16 @@ pub fn contracttype(
                     // Generate the code for the FromValEnum and ToValEnum traits
                     let traits_code = generate_traits_for_structs(struct_name.clone());
 
+                    // Generate to_le_bytes and from_le_bytes 
+                    let to_from_bytes = generate_from_to_le_bytes(struct_name.clone());
+
                     // Combine serialization and deserialization code
                     let result = quote! {
                         #input
                         impl #struct_name {
                             #serialize_code
                             #deserialize_code
+                            #to_from_bytes
                         }
                         #traits_code
                     };
@@ -367,12 +382,16 @@ pub fn contracttype(
                     // Generate the code for the FromValEnum and ToValEnum traits
                     let traits_code = generate_traits_for_structs(struct_name.clone());
 
+                    // Generate to_le_bytes and from_le_bytes 
+                    let to_from_bytes = generate_from_to_le_bytes(struct_name.clone());
+
                     // Combine serialization and deserialization code
                     let result = quote! {
                         #input
                         impl #struct_name {
                             #serialize_code
                             #deserialize_code
+                            #to_from_bytes
                         }
                         #traits_code
                     };
@@ -446,8 +465,8 @@ fn generate_serialize_code(
     });
 
     quote! {
-        pub fn serialize(&self) -> Vec<u8> {
-            let mut buf = Vec::new();
+        pub fn serialize(&self) -> alloc::vec::Vec<u8> {
+            let mut buf = alloc::vec::Vec::new();
             #( #serialization_statements )*
             buf
         }
@@ -508,8 +527,8 @@ fn generate_serialize_code_unnamed(
     });
 
     quote! {
-        pub fn serialize(&self) -> Vec<u8> {
-            let mut result = Vec::new();
+        pub fn serialize(&self) -> alloc::vec::Vec<u8> {
+            let mut result = alloc::vec::Vec::new();
             #( #field_serialization_statements )*
             result
         }
@@ -567,6 +586,18 @@ fn generate_traits_for_structs(name:Ident) -> proc_macro2::TokenStream {
             fn to_val(&self) -> soroban_sdk::Val {
                 soroban_sdk::Val::Struct(self.serialize())
             }
+        }
+    }
+}
+
+fn generate_from_to_le_bytes(name:Ident) -> proc_macro2::TokenStream {
+    quote!{
+        fn to_le_bytes(&self) -> alloc::vec::Vec<u8> {
+            self.serialize()
+        }
+
+        fn from_le_bytes(bytes: alloc::vec::Vec<u8>) -> #name {
+            #name::deserialize(&bytes)
         }
     }
 }

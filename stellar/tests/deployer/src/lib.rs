@@ -18,7 +18,7 @@ impl Deployer {
         verify,
         init({
             // let init_fn = Symbol::new_from_str("init_fn");
-            let init_args = Vec::new(env.clone());
+            let init_args = Vec::new(&env);
         })
     )]
     pub fn deploy(

@@ -5,7 +5,7 @@ use crate::{Env, FromValEnum, ToValEnum, Val};
 
 const VEC_SIZE: usize = 10;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord)]
 pub struct Vec<T> {
     pub data: [T; VEC_SIZE],
     pub size: usize,
@@ -32,7 +32,7 @@ impl<T: Default> Default for Vec<T> {
 }
 
 impl<T> Vec<T> {
-    pub fn new(_env: Env) -> Vec<T>
+    pub fn new(_env: &Env) -> Vec<T>
     where
         T: Default,
     {
@@ -46,14 +46,14 @@ impl<T> Vec<T> {
     where
         T: Default + Copy,
     {
-        Vec::new(Env::default())
+        Vec::new(&Env::default())
     }
 
     pub fn new_from_slice(slice: &[T]) -> Vec<T>
     where
         T: Default + Clone,
     {
-        let mut v = Vec::new(Env::default());
+        let mut v = Vec::new(&Env::default());
         for z in slice {
             v.push(z.clone());
         }
@@ -65,10 +65,12 @@ impl<T> Vec<T> {
     }
 
     pub fn push(&mut self, t: T) {
-        // if self.size < 10 {
         self.data[self.size] = t;
         self.size += 1;
-        // }
+    }
+
+    pub fn push_back(&mut self, t: T) {
+        self.push(t);
     }
 
     pub fn pop(&mut self) {
@@ -87,8 +89,8 @@ impl<T> Vec<T> {
         self.size += 1;
     }
 
-    pub fn len(&self) -> usize {
-        self.size
+    pub fn len(&self) -> u32 {
+        self.size as u32
     }
 
     pub fn is_empty(&self) -> bool {
@@ -99,12 +101,16 @@ impl<T> Vec<T> {
         VecIterator { vec: self, idx: 0 }
     }
 
-    pub fn get(&self, idx: usize) -> Option<&T> {
+    pub fn get(&self, idx: u32) -> Option<T>
+    where
+        T: Copy,
+    {
+        let idx = idx as usize;
         if idx >= self.size {
             return None;
         }
 
-        Some(&self.data[idx])
+        Some(self.data[idx])
     }
 
     pub fn contains(&self, t: &T) -> bool
@@ -246,7 +252,7 @@ impl<T: Clone> IntoIterator for Vec<T> {
 
 impl<T: Default> FromIterator<T> for Vec<T> {
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
-        let mut v = Vec::new(Env::default());
+        let mut v = Vec::new(&Env::default());
         for x in iter {
             v.push(x);
         }
@@ -256,7 +262,7 @@ impl<T: Default> FromIterator<T> for Vec<T> {
 
 impl<T: Default> FromIterator<std::vec::Vec<T>> for Vec<Vec<T>> {
     fn from_iter<I: IntoIterator<Item = std::vec::Vec<T>>>(iter: I) -> Self {
-        let mut v = Vec::new(Env::default());
+        let mut v = Vec::new(&Env::default());
         for x in iter {
             v.push(x.into());
         }
@@ -266,7 +272,7 @@ impl<T: Default> FromIterator<std::vec::Vec<T>> for Vec<Vec<T>> {
 
 impl<T: Default, const N: usize> From<[T; N]> for Vec<T> {
     fn from(arr: [T; N]) -> Vec<T> {
-        let mut vec = Vec::new(Env::default());
+        let mut vec = Vec::new(&Env::default());
         for element in arr {
             vec.push(element);
         }
@@ -276,7 +282,7 @@ impl<T: Default, const N: usize> From<[T; N]> for Vec<T> {
 
 impl<T: Default> From<std::vec::Vec<T>> for Vec<T> {
     fn from(value: std::vec::Vec<T>) -> Self {
-        let mut res = Vec::new(Env::default());
+        let mut res = Vec::new(&Env::default());
         for v in value.into_iter() {
             res.push(v);
         }
@@ -287,10 +293,10 @@ impl<T: Default> From<std::vec::Vec<T>> for Vec<T> {
 impl<T: Default + FromValEnum> FromValEnum for Vec<T> {
     fn from_val(val: Val) -> Option<Self> {
         if let Val::VecVal(u) = val {
-            if u.len() > VEC_SIZE {
+            if u.len() as usize > VEC_SIZE {
                 None
             } else {
-                let mut v = Vec::new(Env::default());
+                let mut v = Vec::new(&Env::default());
                 for i in u.iter() {
                     v.push(T::from_val(*i.clone()).unwrap());
                 }
@@ -311,7 +317,7 @@ impl<T: Default + ToValEnum> ToValEnum for Vec<T> {
 #[cfg(feature = "kani")]
 impl<T: kani::Arbitrary + Default> kani::Arbitrary for Vec<T> {
     fn any() -> Self {
-        let mut v = Vec::new(Env::default());
+        let mut v = Vec::new(&Env::default());
         for _ in 0..kani::any::<u8>() % (VEC_SIZE as u8) {
             v.push(kani::any());
         }
