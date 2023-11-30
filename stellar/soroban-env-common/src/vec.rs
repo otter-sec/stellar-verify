@@ -73,6 +73,10 @@ impl<T> Vec<T> {
         self.push(t);
     }
 
+    pub fn push_front(&mut self, t: T) {
+        self.insert(0, t);
+    }
+
     pub fn pop(&mut self) {
         self.size -= 1;
     }
@@ -314,7 +318,7 @@ impl<T: Default + ToValEnum> ToValEnum for Vec<T> {
     }
 }
 
-#[cfg(feature = "kani")]
+#[cfg(kani)]
 impl<T: kani::Arbitrary + Default> kani::Arbitrary for Vec<T> {
     fn any() -> Self {
         let mut v = Vec::new(&Env::default());
