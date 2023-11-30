@@ -65,10 +65,12 @@ impl<T> Vec<T> {
     }
 
     pub fn push(&mut self, t: T) {
-        // if self.size < 10 {
         self.data[self.size] = t;
         self.size += 1;
-        // }
+    }
+
+    pub fn push_back(&mut self, t: T) {
+        self.push(t);
     }
 
     pub fn pop(&mut self) {
