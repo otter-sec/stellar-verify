@@ -8,15 +8,24 @@ use super::types::generate_type_ident;
 /// Constructs a token stream containing a single trait that has a function for
 /// every function spec.
 pub fn generate_fns(_name: &str, specs: &[&ScSpecFunctionV0]) -> TokenStream {
+    let mut trait_fns = Vec::new();
     let fns: Vec<_> = specs
         .iter()
         .map(|s| {
             let fn_ident = format_ident!("{}", s.name.to_string().unwrap());
-            let fn_inputs = s.inputs.iter().map(|input| {
-                let name = format_ident!("{}", input.name.to_string().unwrap());
-                let type_ident = generate_type_ident(&input.type_);
-                quote! { #name: &#type_ident }
-            });
+            let mut trait_fn_inputs = Vec::new();
+
+            let fn_inputs: Vec<TokenStream> = s
+                .inputs
+                .iter()
+                .map(|input| {
+                    let name = format_ident!("{}", input.name.to_string().unwrap());
+                    let type_ident = generate_type_ident(&input.type_);
+                    trait_fn_inputs.push(quote! { #name: #type_ident });
+                    quote! { #name: &#type_ident }
+                })
+                .collect();
+
             let fn_output = s
                 .outputs
                 .to_option()
@@ -34,6 +43,10 @@ pub fn generate_fns(_name: &str, specs: &[&ScSpecFunctionV0]) -> TokenStream {
                 }
             };
 
+            trait_fns.push(quote! {
+                fn #fn_ident(env: soroban_sdk::Env, #(#trait_fn_inputs),*) #fn_output
+            });
+
             quote! {
                 pub fn #fn_ident(&self, #(#fn_inputs),*) #fn_output {
                     #fn_implementation
@@ -43,7 +56,13 @@ pub fn generate_fns(_name: &str, specs: &[&ScSpecFunctionV0]) -> TokenStream {
         .collect();
 
     quote! {
-        impl Client {
+
+        pub trait Contract
+        {
+            #(#trait_fns;)*
+        }
+
+        impl<'a> Client<'a> {
             #(#fns)*
         }
     }
