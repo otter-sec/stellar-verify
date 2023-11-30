@@ -314,7 +314,7 @@ impl<T: Default + ToValEnum> ToValEnum for Vec<T> {
     }
 }
 
-#[cfg(feature = "kani")]
+#[cfg(kani)]
 impl<T: kani::Arbitrary + Default> kani::Arbitrary for Vec<T> {
     fn any() -> Self {
         let mut v = Vec::new(&Env::default());
