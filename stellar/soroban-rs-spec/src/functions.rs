@@ -43,7 +43,7 @@ pub fn generate_fns(_name: &str, specs: &[&ScSpecFunctionV0]) -> TokenStream {
         .collect();
 
     quote! {
-        impl Client {
+        impl<'a> Client<'a> {
             #(#fns)*
         }
     }

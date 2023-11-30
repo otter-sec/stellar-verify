@@ -305,16 +305,18 @@ pub fn contractimport(metadata: proc_macro::TokenStream) -> proc_macro::TokenStr
         // Generate.
         match generate_from_file(file_abs.to_str().unwrap()) {
             Ok(code) => quote! { 
-                pub struct Client {
+                pub struct Client<'a> {
                     pub env: soroban_sdk::Env,
                     pub address: soroban_sdk::Address,
+                    _phantom: core::marker::PhantomData<&'a ()>,
                 }
 
-                impl Client {
+                impl<'a> Client<'a> {
                     pub fn new(env: &soroban_sdk::Env, address: &soroban_sdk::Address) -> Self {
                         Self {
                             env : env.clone(),
-                            address: address.clone()
+                            address: address.clone(),
+                            _phantom: core::marker::PhantomData,
                         }
                     }
                 }
