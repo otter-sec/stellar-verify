@@ -360,6 +360,7 @@ pub fn contracttype(
 
                     // Combine serialization and deserialization code
                     let result = quote! {
+                        #[cfg_attr(any(kani, feature="kani"), derive(kani::Arbitrary))]
                         #input
                         impl #struct_name {
                             #serialize_code
@@ -389,6 +390,7 @@ pub fn contracttype(
 
                     // Combine serialization and deserialization code
                     let result = quote! {
+                        #[cfg_attr(any(kani, feature="kani"), derive(kani::Arbitrary))]
                         #input
                         impl #struct_name {
                             #serialize_code
@@ -424,7 +426,7 @@ pub fn contracttype(
                 .to_compile_error(),
         };
     quote! {
-
+        #[cfg_attr(any(kani, feature="kani"), derive(kani::Arbitrary))]
         #struct_in
 
         #derived
