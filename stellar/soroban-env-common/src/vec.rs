@@ -73,6 +73,10 @@ impl<T> Vec<T> {
         self.push(t);
     }
 
+    pub fn push_front(&mut self, t: T) {
+        self.insert(0, t);
+    }
+
     pub fn pop(&mut self) {
         self.size -= 1;
     }
