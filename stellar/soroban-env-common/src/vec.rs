@@ -1,7 +1,7 @@
 use core::slice;
 use std::ops;
 
-use crate::{Env, FromValEnum, ToValEnum, TryFromVal, Val};
+use crate::{Env, FromValEnum, ToValEnum, Val};
 
 const VEC_SIZE: usize = 10;
 
