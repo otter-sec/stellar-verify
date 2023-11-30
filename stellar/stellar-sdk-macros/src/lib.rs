@@ -454,8 +454,8 @@ fn generate_serialize_code(
     });
 
     quote! {
-        pub fn serialize(&self) -> Vec<u8> {
-            let mut buf = Vec::new();
+        pub fn serialize(&self) -> alloc::vec::Vec<u8> {
+            let mut buf = alloc::vec::Vec::new();
             #( #serialization_statements )*
             buf
         }
@@ -516,7 +516,7 @@ fn generate_serialize_code_unnamed(
     });
 
     quote! {
-        pub fn serialize(&self) -> Vec<u8> {
+        pub fn serialize(&self) -> alloc::vec::Vec<u8> {
             let mut result = Vec::new();
             #( #field_serialization_statements )*
             result

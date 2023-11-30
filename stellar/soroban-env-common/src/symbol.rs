@@ -1,7 +1,7 @@
 use core::fmt;
 use std::fmt::Display;
 
-use crate::{FromValEnum, ToValEnum, Val};
+use crate::{Env, FromValEnum, ToValEnum, Val};
 
 const SCSYMBOL_LIMIT: usize = 10;
 
@@ -57,6 +57,10 @@ impl Symbol {
     }
 
     pub const fn from(s: &str) -> Self {
+        Self::new_from_str(s)
+    }
+
+    pub const fn new(_env: &Env, s: &str) -> Self {
         Self::new_from_str(s)
     }
 
