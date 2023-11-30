@@ -187,6 +187,7 @@ pub fn verify(
     // Create a Vec to store the input argument names
     let mut arg_names = Vec::new();
     let mut arg_initializations = Vec::new();
+    let mut env_clone_register_contract = Vec::new();
 
     // Iterate over the function's arguments and add their names to the Vec
     for input_arg in &item_fn.sig.inputs {
@@ -194,19 +195,32 @@ pub fn verify(
             if let Pat::Ident(PatIdent { ident, .. }) = &*pat.pat {
                 let arg_name = ident.clone();
                 let arg_ty = &pat.ty;
-                if arg_name == "env" {
-                    // Create new variable name for the cloned environment as env_clone
-                    arg_names.push(Ident::new("env_clone", arg_name.span()));
-                    arg_initializations.push(quote! {
-                        let #arg_name = Env::default();
-                    });
-                    continue;
-                } else {
-                    arg_names.push(arg_name.clone());
-                    if !inited_vars.contains(&arg_name.clone()) {
-                        arg_initializations.push(quote! {
-                            let #arg_name = kani::any::<#arg_ty>();
-                        }); 
+
+                if let syn::Type::Path(path) = arg_ty.as_ref() {
+                    if let Some(segment) = path.path.segments.first() {
+                        if segment.ident == "Env" {
+                            // The argument type is Env
+                            let cloned_env = format_ident!("{}_clone", arg_name, span = arg_name.span());
+                            arg_names.push(cloned_env.clone());
+                            arg_initializations.push(quote! {
+                                let #arg_name = Env::default();
+                            });
+                            env_clone_register_contract.push(
+                                quote! {
+                                    // Clone the environment
+                                    let #cloned_env = #arg_name.clone();
+                                    // Register the contract
+                                    let _ = #arg_name.register_contract(None, 0);
+                                }
+                            );
+                        } else {
+                            arg_names.push(arg_name.clone());
+                            if !inited_vars.contains(&arg_name.clone()) {
+                                arg_initializations.push(quote! {
+                                    let #arg_name = kani::any::<#arg_ty>();
+                                }); 
+                            }
+                        }
                     }
                 }
             }
@@ -238,11 +252,7 @@ pub fn verify(
             #(#arg_initializations)*
             #(#extracted_content)*
 
-            // Clone the environment
-            let env_clone = env.clone();
-
-            // Register the contract
-            let _ = env.register_contract(None, 0);
+            #(#env_clone_register_contract)*
 
             // Assume the preconditions
             kani::assume(
