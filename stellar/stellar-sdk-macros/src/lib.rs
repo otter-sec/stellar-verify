@@ -517,7 +517,7 @@ fn generate_serialize_code_unnamed(
 
     quote! {
         pub fn serialize(&self) -> alloc::vec::Vec<u8> {
-            let mut result = Vec::new();
+            let mut result = alloc::vec::Vec::new();
             #( #field_serialization_statements )*
             result
         }
