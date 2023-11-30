@@ -1,4 +1,4 @@
-use crate::{Address, MockToken, Storage, Val};
+use crate::{Address, MockToken, Storage, String, Val};
 use std::fmt::Debug;
 use std::{
     cell::{Ref, RefCell},
@@ -93,4 +93,10 @@ pub trait IntoVal<E: internal::Env, T> {
 pub trait TryFromVal<E: internal::Env, V: ?Sized>: Sized {
     type Error: Debug + Into<crate::ConversionError>;
     fn try_from_val(env: &E, v: &V) -> Result<Self, Self::Error>;
+}
+
+impl<E: internal::Env> IntoVal<E, String> for &'static str {
+    fn into_val(self, _e: &E) -> String {
+        self.into()
+    }
 }
