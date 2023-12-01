@@ -17,7 +17,6 @@ impl Deployer {
     #[cfg_attr(any(kani, feature = "kani"), 
         verify,
         init({
-            // let init_fn = Symbol::new_from_str("init_fn");
             let init_args = Vec::new(&env);
         })
     )]
@@ -41,11 +40,8 @@ impl Deployer {
             .deploy(wasm_hash);
 
         // Invoke the init function with the given arguments.
-        #[cfg(not(any(kani, feature = "kani")))]
         let res: Val = env.invoke_contract(&deployed_address, &init_fn, init_args.to_vec());
-
-        #[cfg(any(kani, feature = "kani"))]
-        let res: Val = Val::BoolVal(true);
+        
         // Return the contract ID of the deployed contract and the result of
         // invoking the init result.
         (deployed_address, res)
