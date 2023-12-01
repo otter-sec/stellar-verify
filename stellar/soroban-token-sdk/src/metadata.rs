@@ -1,9 +1,9 @@
 use soroban_sdk::{contracttype, symbol_short, Env, String, Symbol};
 
-const _METADATA_KEY: Symbol = symbol_short!("METADATA");
+const METADATA_KEY: Symbol = symbol_short!("METADATA_");
 
 extern crate alloc;
-#[derive(Clone)]
+#[derive(Clone, Default)]
 #[contracttype]
 pub struct TokenMetadata {
     pub decimal: u32,
@@ -12,24 +12,23 @@ pub struct TokenMetadata {
 }
 
 pub struct Metadata {
-    _env: Env,
+    env: Env,
 }
 
 impl Metadata {
     pub fn new(env: &Env) -> Metadata {
-        Metadata { _env: env.clone() }
+        Metadata { env: env.clone() }
     }
 
-    #[inline(always)]
-    pub fn set_metadata(&self, _metadata: &TokenMetadata) {}
+    pub fn set_metadata(&self, metadata: &TokenMetadata) {
+        self.env.storage().instance().set(&METADATA_KEY, metadata);
+    }
 
-    #[inline(always)]
     pub fn get_metadata(&self) -> TokenMetadata {
-        //self.env.storage().instance().get(&METADATA_KEY).unwrap()
-        TokenMetadata {
-            decimal: 0,
-            name: String::from("Test"),
-            symbol: String::from("TST"),
-        }
+        self.env
+            .storage()
+            .instance()
+            .get(&METADATA_KEY)
+            .unwrap_or_default()
     }
 }

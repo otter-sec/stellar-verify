@@ -12,7 +12,14 @@ impl Ledger {
     }
 
     pub fn max_live_until_ledger(&self) -> u32 {
-        kani::any()
+        #[cfg(kani)]
+        {
+            kani::any()
+        }
+        #[cfg(not(kani))]
+        {
+            u32::MAX
+        }
     }
 
     // Always return current timestamp as of the time of writing this code.

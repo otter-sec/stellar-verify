@@ -1,23 +1,31 @@
 use darling::{ast::NestedMeta, FromMeta};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
-use syn::{
-    parse_macro_input, Block, Data, DeriveInput, Error, Expr, Fields, FieldsNamed, FnArg, ItemFn, Pat, PatIdent, DataEnum, FieldsUnnamed,
-};
 use soroban_rs_spec::generate_from_file;
+use syn::{
+    parse_macro_input, Block, Data, DataEnum, DeriveInput, Error, Expr, Fields, FieldsNamed,
+    FieldsUnnamed, FnArg, ItemFn, Pat, PatIdent,
+};
 
 const KANI_UNWIND: usize = 20;
 
-
 #[proc_macro_attribute]
-pub fn contractimpl(_attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn contractimpl(
+    _attr: proc_macro::TokenStream,
+    item: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
     let input = parse_macro_input!(item as syn::ItemImpl);
     let struct_name = input.self_ty.as_ref();
 
     let name = if let syn::Type::Path(syn::TypePath { path, .. }) = struct_name {
-        path.segments.last().map(|seg: &syn::PathSegment| seg.ident.clone()).unwrap()
+        path.segments
+            .last()
+            .map(|seg: &syn::PathSegment| seg.ident.clone())
+            .unwrap()
     } else {
-        return syn::Error::new_spanned(input, "Expected an impl for a struct").to_compile_error().into();
+        return syn::Error::new_spanned(input, "Expected an impl for a struct")
+            .to_compile_error()
+            .into();
     };
 
     let client = syn::Ident::new(&format!("{}Client", name), name.span());
@@ -38,25 +46,24 @@ pub fn contractimpl(_attr: proc_macro::TokenStream, item: proc_macro::TokenStrea
                 } else {
                     arg.clone()
                 };
-            
+
                 inputs.push(transformed_arg);
             }
-            
 
             let ret = match output {
-                syn::ReturnType::Default => quote! { 
-                    pub fn #method_name(#(#inputs),*) #output {} 
+                syn::ReturnType::Default => quote! {
+                    pub fn #method_name(#(#inputs),*) #output {}
                 },
                 syn::ReturnType::Type(_, t) => {
-                    let type_str  = t.clone().to_token_stream().to_string();
+                    let type_str = t.clone().to_token_stream().to_string();
                     if type_str.contains("Val") {
-                        quote! { 
-                            pub fn #method_name(#(#inputs),*) #output {
-                                Default::default()
-                            }
-                         }
+                        quote! {
+                           pub fn #method_name(#(#inputs),*) #output {
+                               Default::default()
+                           }
+                        }
                     } else {
-                        quote! { 
+                        quote! {
                             pub fn #method_name(#(#inputs),*) #output {
                                 kani::any()
                             }
@@ -66,7 +73,6 @@ pub fn contractimpl(_attr: proc_macro::TokenStream, item: proc_macro::TokenStrea
             };
 
             Some(ret)
-
         } else {
             None
         }
@@ -80,11 +86,15 @@ pub fn contractimpl(_attr: proc_macro::TokenStream, item: proc_macro::TokenStrea
             #( #methods )*
 
         }
-    }.into()
+    }
+    .into()
 }
 
 #[proc_macro_attribute]
-pub fn contract(_metadata: proc_macro::TokenStream, input_: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn contract(
+    _metadata: proc_macro::TokenStream,
+    input_: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input_ as syn::ItemStruct);
     let name = &input.ident;
 
@@ -169,7 +179,7 @@ pub fn verify(
     let input: proc_macro::TokenStream = precondition.into();
     // Parse the input as a Block
     let block: Block = parse_macro_input!(input);
-    
+
     let mut inited_vars = Vec::new();
     for stmt in block.clone().stmts {
         if let syn::Stmt::Local(local) = stmt {
@@ -200,25 +210,24 @@ pub fn verify(
                     if let Some(segment) = path.path.segments.first() {
                         if segment.ident == "Env" {
                             // The argument type is Env
-                            let cloned_env = format_ident!("{}_clone", arg_name, span = arg_name.span());
+                            let cloned_env =
+                                format_ident!("{}_clone", arg_name, span = arg_name.span());
                             arg_names.push(cloned_env.clone());
                             arg_initializations.push(quote! {
                                 let #arg_name = Env::default();
                             });
-                            env_clone_register_contract.push(
-                                quote! {
-                                    // Clone the environment
-                                    let #cloned_env = #arg_name.clone();
-                                    // Register the contract
-                                    let _ = #arg_name.register_contract(None, 0);
-                                }
-                            );
+                            env_clone_register_contract.push(quote! {
+                                // Clone the environment
+                                let #cloned_env = #arg_name.clone();
+                                // Register the contract
+                                let _ = #arg_name.register_contract(None, 0);
+                            });
                         } else {
                             arg_names.push(arg_name.clone());
                             if !inited_vars.contains(&arg_name.clone()) {
                                 arg_initializations.push(quote! {
                                     let #arg_name = kani::any::<#arg_ty>();
-                                }); 
+                                });
                             }
                         }
                     }
@@ -287,47 +296,45 @@ struct ContractImportArgs {
 
 #[proc_macro]
 pub fn contractimport(metadata: proc_macro::TokenStream) -> proc_macro::TokenStream {
-        let args = match NestedMeta::parse_meta_list(metadata.into()) {
-            Ok(v) => v,
-            Err(e) => {
-                return proc_macro::TokenStream::from(darling::Error::from(e).write_errors());
+    let args = match NestedMeta::parse_meta_list(metadata.into()) {
+        Ok(v) => v,
+        Err(e) => {
+            return proc_macro::TokenStream::from(darling::Error::from(e).write_errors());
+        }
+    };
+
+    let args = match ContractImportArgs::from_list(&args) {
+        Ok(v) => v,
+        Err(e) => return e.write_errors().into(),
+    };
+
+    // Read WASM from file.
+    let file_abs = abs_from_rel_to_manifest(args.file);
+
+    // Generate.
+    match generate_from_file(file_abs.to_str().unwrap()) {
+        Ok(code) => quote! {
+            pub struct Client<'a> {
+                pub env: soroban_sdk::Env,
+                pub address: soroban_sdk::Address,
+                _phantom: core::marker::PhantomData<&'a ()>,
             }
-        };
 
-        let args = match ContractImportArgs::from_list(&args) {
-            Ok(v) => v,
-            Err(e) => return e.write_errors().into(),
-        };
-    
-        // Read WASM from file.
-        let file_abs = abs_from_rel_to_manifest(args.file);
-    
-        // Generate.
-        match generate_from_file(file_abs.to_str().unwrap()) {
-            Ok(code) => quote! { 
-                pub struct Client<'a> {
-                    pub env: soroban_sdk::Env,
-                    pub address: soroban_sdk::Address,
-                    _phantom: core::marker::PhantomData<&'a ()>,
-                }
-
-                impl<'a> Client<'a> {
-                    pub fn new(env: &soroban_sdk::Env, address: &soroban_sdk::Address) -> Self {
-                        Self {
-                            env : env.clone(),
-                            address: address.clone(),
-                            _phantom: core::marker::PhantomData,
-                        }
+            impl<'a> Client<'a> {
+                pub fn new(env: &soroban_sdk::Env, address: &soroban_sdk::Address) -> Self {
+                    Self {
+                        env : env.clone(),
+                        address: address.clone(),
+                        _phantom: core::marker::PhantomData,
                     }
                 }
-                #code 
-            },
-            Err(e) => Error::new(proc_macro2::Span::call_site(), e.to_string()).into_compile_error(),
-        }
-        .into()
-
+            }
+            #code
+        },
+        Err(e) => Error::new(proc_macro2::Span::call_site(), e.to_string()).into_compile_error(),
     }
-
+    .into()
+}
 
 #[proc_macro_attribute]
 pub fn contracttype(
@@ -343,97 +350,96 @@ pub fn contracttype(
         #[cfg_attr(any(kani, feature="kani"), derive(kani::Arbitrary))]
     };
 
-    let derived =
-        match &input.data {
-            Data::Struct(s) => match &s.fields {
-                Fields::Named(FieldsNamed { named, .. }) => {
-                    // Get the name of the struct
-                    let struct_name = &input.ident;
+    let derived = match &input.data {
+        Data::Struct(s) => match &s.fields {
+            Fields::Named(FieldsNamed { named, .. }) => {
+                // Get the name of the struct
+                let struct_name = &input.ident;
 
-                    // Generate the serialization code
-                    let serialize_code = generate_serialize_code(named);
+                // Generate the serialization code
+                let serialize_code = generate_serialize_code(named);
 
-                    // Generate the deserialization code
-                    let deserialize_code = generate_deserialize_code(named);
+                // Generate the deserialization code
+                let deserialize_code = generate_deserialize_code(named);
 
-                    // Generate the code for the FromValEnum and ToValEnum traits
-                    let traits_code = generate_traits_for_structs(struct_name.clone());
+                // Generate the code for the FromValEnum and ToValEnum traits
+                let traits_code = generate_traits_for_structs(struct_name.clone());
 
-                    // Generate to_le_bytes and from_le_bytes 
-                    let to_from_bytes = generate_from_to_le_bytes(struct_name.clone());
-
-                    // Combine serialization and deserialization code
-                    let result = quote! {
-                        #derive_arbitrary
-                        #input
-                        impl #struct_name {
-                            #serialize_code
-                            #deserialize_code
-                            #to_from_bytes
-                        }
-                        #traits_code
-                    };
-
-                    return result.into();
-                },
-                Fields::Unnamed(FieldsUnnamed { unnamed, .. }) => {
-                    // Get the name of the struct
-                    let struct_name = &input.ident;
-
-                    // Generate the serialization code
-                    let serialize_code = generate_serialize_code_unnamed(unnamed);
-
-                    // Generate the deserialization code
-                    let deserialize_code = generate_deserialize_code_unnamed(unnamed);
-
-                    // Generate the code for the FromValEnum and ToValEnum traits
-                    let traits_code = generate_traits_for_structs(struct_name.clone());
-
-                    // Generate to_le_bytes and from_le_bytes 
-                    let to_from_bytes = generate_from_to_le_bytes(struct_name.clone());
-
-                    // Combine serialization and deserialization code
-                    let result = quote! {
-                        #derive_arbitrary
-                        #input
-                        impl #struct_name {
-                            #serialize_code
-                            #deserialize_code
-                            #to_from_bytes
-                        }
-                        #traits_code
-                    };
-
-                    return result.into();
-
-                },
-                Fields::Unit => Error::new(
-                    ident.span(),
-                    "unit structs are not supported as contract types",
-                )
-                .to_compile_error(),
-            },
-            Data::Enum(enum_data) => {
-                let enum_name = &input.ident;
-                let to_val_enum_impl = generate_to_val_enum(enum_data, enum_name);
-                let from_val_enum_impl = generate_from_val_enum(enum_data, enum_name);
-
-                let expanded = quote! {
-                    #to_val_enum_impl
-
-                    #from_val_enum_impl
+                // Generate to_le_bytes and from_le_bytes
+                let to_from_bytes = generate_from_to_le_bytes(struct_name.clone());
+                // Combine serialization and deserialization code
+                let result = quote! {
+                    #derive_arbitrary
+                    #input
+                    impl #struct_name {
+                        #serialize_code
+                        #deserialize_code
+                        #to_from_bytes
+                    }
+                    #traits_code
                 };
 
-                // Only derive kani if there are more than one variants
-                if enum_data.variants.len()  <= 1 {
-                    derive_arbitrary = quote! {};
-                }
+                return result.into();
+            }
+            Fields::Unnamed(FieldsUnnamed { unnamed, .. }) => {
+                // Get the name of the struct
+                let struct_name = &input.ident;
 
-                expanded
-            },
-            Data::Union(_u) => Error::new(ident.span(), "unions are unsupported as contract types")
-                .to_compile_error(),
-        };
+                // Generate the serialization code
+                let serialize_code = generate_serialize_code_unnamed(unnamed);
+
+                // Generate the deserialization code
+                let deserialize_code = generate_deserialize_code_unnamed(unnamed);
+
+                // Generate the code for the FromValEnum and ToValEnum traits
+                let traits_code = generate_traits_for_structs(struct_name.clone());
+
+                // Generate to_le_bytes and from_le_bytes
+                let to_from_bytes = generate_from_to_le_bytes(struct_name.clone());
+
+                // Combine serialization and deserialization code
+                let result = quote! {
+                    #derive_arbitrary
+                    #input
+                    impl #struct_name {
+                        #serialize_code
+                        #deserialize_code
+                        #to_from_bytes
+                    }
+                    #traits_code
+                };
+
+                return result.into();
+            }
+            Fields::Unit => Error::new(
+                ident.span(),
+                "unit structs are not supported as contract types",
+            )
+            .to_compile_error(),
+        },
+        Data::Enum(enum_data) => {
+            let enum_name = &input.ident;
+            let to_val_enum_impl = generate_to_val_enum(enum_data, enum_name);
+            let from_val_enum_impl = generate_from_val_enum(enum_data, enum_name);
+
+            let expanded = quote! {
+                #to_val_enum_impl
+
+                #from_val_enum_impl
+            };
+
+            // Only derive kani if there are more than one variants
+            if enum_data.variants.len() <= 1 {
+                derive_arbitrary = quote! {};
+            }
+
+            expanded
+        }
+        Data::Union(_u) => {
+            Error::new(ident.span(), "unions are unsupported as contract types").to_compile_error()
+        }
+    };
+
     quote! {
         #derive_arbitrary
         #struct_in
@@ -443,10 +449,11 @@ pub fn contracttype(
     .into()
 }
 
-
-
 #[proc_macro_attribute]
-pub fn contracterror(_attrs: proc_macro::TokenStream, input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn contracterror(
+    _attrs: proc_macro::TokenStream,
+    input: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as syn::ItemEnum);
 
     let enum_name = &input.ident;
@@ -465,7 +472,6 @@ pub fn contracterror(_attrs: proc_macro::TokenStream, input: proc_macro::TokenSt
 
     expanded.into()
 }
-
 
 fn generate_serialize_code(
     fields: &syn::punctuated::Punctuated<syn::Field, syn::token::Comma>,
@@ -508,8 +514,7 @@ fn generate_deserialize_code(
                 };
             }
         };
-        quote! {            
-            let mut offset = 0;
+        quote! {
             let mut #field_name_bytes = [0u8; core::mem::size_of::<#field_ty>()];
             #field_name_bytes.copy_from_slice(&buf[offset..offset + core::mem::size_of::<#field_ty>()]);
             let #field_name = <#field_ty>::from_le_bytes(#field_name_bytes);
@@ -519,6 +524,7 @@ fn generate_deserialize_code(
 
     quote! {
         pub fn deserialize(buf: &[u8]) -> Self {
+            let mut offset = 0;
             #( #field_deserialization_statements )*
             Self {
                 #( #field_names ),*
@@ -584,7 +590,7 @@ fn generate_deserialize_code_unnamed(
     }
 }
 
-fn generate_traits_for_structs(name:Ident) -> proc_macro2::TokenStream {
+fn generate_traits_for_structs(name: Ident) -> proc_macro2::TokenStream {
     quote! {
         impl soroban_sdk::FromValEnum for #name {
             fn from_val(val: soroban_sdk::Val) -> Option<Self> {
@@ -603,8 +609,8 @@ fn generate_traits_for_structs(name:Ident) -> proc_macro2::TokenStream {
     }
 }
 
-fn generate_from_to_le_bytes(name:Ident) -> proc_macro2::TokenStream {
-    quote!{
+fn generate_from_to_le_bytes(name: Ident) -> proc_macro2::TokenStream {
+    quote! {
         fn to_le_bytes(&self) -> alloc::vec::Vec<u8> {
             self.serialize()
         }
@@ -616,122 +622,114 @@ fn generate_from_to_le_bytes(name:Ident) -> proc_macro2::TokenStream {
 }
 
 fn generate_to_val_enum(enum_data: &DataEnum, enum_name: &Ident) -> proc_macro2::TokenStream {
-            let variants = &enum_data.variants;
-            let mut arms = proc_macro2::TokenStream::new();
+    let variants = &enum_data.variants;
+    let mut arms = proc_macro2::TokenStream::new();
 
-            for variant in variants {
-                let variant_ident = &variant.ident;
-                let variant_name = variant_ident.to_string();
+    for variant in variants {
+        let variant_ident = &variant.ident;
+        let variant_name = variant_ident.to_string();
 
-                let arm = match &variant.fields {
-                    Fields::Unit => {
-                        quote! {
-                            #enum_name::#variant_ident => soroban_sdk::Val::EnumVal(
-                                soroban_sdk::EnumType {
-                                    variant: soroban_sdk::symbol_short!(#variant_name),
-                                    value: alloc::vec::Vec::new().into(),
-                                }
-                            ),
+        let arm = match &variant.fields {
+            Fields::Unit => {
+                quote! {
+                    #enum_name::#variant_ident => soroban_sdk::Val::EnumVal(
+                        soroban_sdk::EnumType {
+                            variant: soroban_sdk::symbol_short!(#variant_name),
+                            value: alloc::vec::Vec::new().into(),
                         }
-                    },
-                    Fields::Named(_) => {
-                       quote! {
-                            Error::new(
-                                ident.span(),
-                                "named structs are not supported as contract types"
-                            )
-                            .to_compile_error()
-                        }
-                    },
-                    Fields::Unnamed(_) => {
-                        quote! {
-                            #enum_name::#variant_ident(data) => soroban_sdk::Val::EnumVal(
-                                soroban_sdk::EnumType {
-                                    variant: soroban_sdk::symbol_short!(#variant_name),
-                                    value: data.to_le_bytes().to_vec().into(),
-                                }
-                            ),
-                        }
-                    }
-                };
-
-                arms.extend(arm);
-            }
-
-            quote!{
-                impl soroban_sdk::ToValEnum for #enum_name {
-                    fn to_val(&self) -> soroban_sdk::Val {
-                        match self {
-                            #arms
-                        }
-                    }
+                    ),
                 }
             }
+            Fields::Named(_) => {
+                quote! {
+                    Error::new(
+                        ident.span(),
+                        "named structs are not supported as contract types"
+                    )
+                    .to_compile_error()
+                }
+            }
+            Fields::Unnamed(_) => {
+                quote! {
+                    #enum_name::#variant_ident(data) => soroban_sdk::Val::EnumVal(
+                        soroban_sdk::EnumType {
+                            variant: soroban_sdk::symbol_short!(#variant_name),
+                            value: data.to_le_bytes().to_vec().into(),
+                        }
+                    ),
+                }
+            }
+        };
 
+        arms.extend(arm);
+    }
+
+    quote! {
+        impl soroban_sdk::ToValEnum for #enum_name {
+            fn to_val(&self) -> soroban_sdk::Val {
+                match self {
+                    #arms
+                }
+            }
+        }
+    }
 }
 
 fn generate_from_val_enum(data: &DataEnum, enum_name: &Ident) -> proc_macro2::TokenStream {
-    let variants = &data.variants;  
-            let mut arms = proc_macro2::TokenStream::new();
+    let variants = &data.variants;
+    let mut arms = proc_macro2::TokenStream::new();
 
-            for variant in variants {
-                let variant_ident = &variant.ident;
-                let variant_name = variant_ident.to_string();
+    for variant in variants {
+        let variant_ident = &variant.ident;
+        let variant_name = variant_ident.to_string();
 
-                let arm = match &variant.fields {
-                    Fields::Unit => {
-                        quote! {
-                            #variant_name => Some(#enum_name::#variant_ident),
-                        }
-                    },
-                    Fields::Named(_) => {
-                        quote! {
-                            Error::new(
-                                ident.span(),
-                                "named structs are not supported as contract types"
-                            )
-                            .to_compile_error()
-                        }
-
-                    },
-                    Fields::Unnamed(unnamed_feilds) => {
-                        let ty = &unnamed_feilds.unnamed.last().unwrap().ty;
-                        quote! {
-                            #variant_name => Some(#enum_name::#variant_ident(
-                                <#ty>::from_le_bytes(
-                                    enumval.value.try_into().unwrap()
-                                )
-                            )),
-                        }
-                    },
-                };
-
-                arms.extend(arm);
-            }
-            arms.extend(
+        let arm = match &variant.fields {
+            Fields::Unit => {
                 quote! {
-                    _ => None,
-                }
-            );
-
-            quote!{
-                impl soroban_sdk::FromValEnum for #enum_name {
-                    fn from_val(val: soroban_sdk::Val) -> Option<Self> {
-                        if let soroban_sdk::Val::EnumVal(enumval) = val {
-                            match enumval.variant.as_str() {
-                                #arms
-                            }
-                        }  else {
-                            None
-                        }
-                    }
+                    #variant_name => Some(#enum_name::#variant_ident),
                 }
             }
-            
+            Fields::Named(_) => {
+                quote! {
+                    Error::new(
+                        ident.span(),
+                        "named structs are not supported as contract types"
+                    )
+                    .to_compile_error()
+                }
+            }
+            Fields::Unnamed(unnamed_feilds) => {
+                let ty = &unnamed_feilds.unnamed.last().unwrap().ty;
+                quote! {
+                    #variant_name => Some(#enum_name::#variant_ident(
+                        <#ty>::from_le_bytes(
+                            enumval.value.try_into().unwrap()
+                        )
+                    )),
+                }
+            }
+        };
+
+        arms.extend(arm);
+    }
+    arms.extend(quote! {
+        _ => None,
+    });
+
+    quote! {
+        impl soroban_sdk::FromValEnum for #enum_name {
+            fn from_val(val: soroban_sdk::Val) -> Option<Self> {
+                if let soroban_sdk::Val::EnumVal(enumval) = val {
+                    match enumval.variant.as_str() {
+                        #arms
+                    }
+                }  else {
+                    None
+                }
+            }
+        }
+    }
 }
-
-
-
 
 fn abs_from_rel_to_manifest(path: impl Into<std::path::PathBuf>) -> std::path::PathBuf {
     let path: std::path::PathBuf = path.into();

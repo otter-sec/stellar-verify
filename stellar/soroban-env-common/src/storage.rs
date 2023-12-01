@@ -193,3 +193,33 @@ impl Storage {
         self.tokens[index] = token;
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::Symbol;
+
+    use super::*;
+    #[test]
+    fn test_has_storage() {
+        let storage = Storage::default();
+        let mut instance = storage.instance();
+        let symb = Symbol::from("test");
+        let symb2 = Symbol::from("test1");
+        let value = 10;
+        instance.set(&symb, &value);
+        assert!(instance.has(&symb));
+        assert!(!instance.has(&symb2));
+    }
+
+    #[test]
+    fn test_has_storage_with_enum() {
+        let storage = Storage::default();
+        let mut instance = storage.instance();
+        let symb = Symbol::from("test");
+        let symb2 = Symbol::from("test1");
+        let value = 10;
+        instance.set(&symb, &value);
+        assert!(instance.has(&symb));
+        assert!(!instance.has(&symb2));
+    }
+}
