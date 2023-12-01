@@ -100,3 +100,10 @@ impl<E: internal::Env> IntoVal<E, String> for &'static str {
         self.into()
     }
 }
+
+#[cfg(any(kani, feature = "kani"))]
+impl kani::Arbitrary for Env {
+    fn any() -> Env {
+        Env::default()
+    }
+}
