@@ -142,6 +142,7 @@ pub trait Interface {
     /// * `from` - The address holding the balance of tokens to be drawn from.
     /// * `spender` - The address spending the tokens held by `from`.
     fn allowance(env: Env, from: Address, spender: Address) -> i128;
+    fn verify_allowance(env: Env, from: Address, spender: Address) {}
 
     /// Set the allowance by `amount` for `spender` to transfer/burn from
     /// `from`.
@@ -162,6 +163,14 @@ pub trait Interface {
     /// Emits an event with topics `["approve", from: Address,
     /// spender: Address], data = [amount: i128, expiration_ledger: u32]`
     fn approve(env: Env, from: Address, spender: Address, amount: i128, expiration_ledger: u32);
+    fn verify_approve(
+        env: Env,
+        from: Address,
+        spender: Address,
+        amount: i128,
+        expiration_ledger: u32,
+    ) {
+    }
 
     /// Returns the balance of `id`.
     ///
@@ -170,6 +179,7 @@ pub trait Interface {
     /// * `id` - The address for which a balance is being queried. If the
     ///   address has no existing balance, returns 0.
     fn balance(env: Env, id: Address) -> i128;
+    fn verify_balance(env: Env, id: Address) {}
 
     /// Returns the spendable balance of `id`.
     ///
@@ -180,6 +190,7 @@ pub trait Interface {
     ///   on the Stellar Asset Contract, in which case this can be less due to
     ///   reserves/liabilities.
     fn spendable_balance(env: Env, id: Address) -> i128;
+    fn verify_spendable_balance(env: Env, id: Address) {}
 
     /// Transfer `amount` from `from` to `to`.
     ///
@@ -195,6 +206,7 @@ pub trait Interface {
     /// Emits an event with topics `["transfer", from: Address, to: Address],
     /// data = [amount: i128]`
     fn transfer(env: Env, from: Address, to: Address, amount: i128);
+    fn verify_transfer(env: Env, from: Address, to: Address, amount: i128) {}
 
     /// Transfer `amount` from `from` to `to`, consuming the allowance of
     /// `spender`. Authorized by spender (`spender.require_auth()`).
@@ -213,6 +225,7 @@ pub trait Interface {
     /// Emits an event with topics `["transfer", from: Address, to: Address],
     /// data = [amount: i128]`
     fn transfer_from(env: Env, spender: Address, from: Address, to: Address, amount: i128);
+    fn verify_transfer_from(env: Env, spender: Address, from: Address, to: Address, amount: i128) {}
 
     /// Burn `amount` from `from`.
     ///
@@ -227,6 +240,7 @@ pub trait Interface {
     /// Emits an event with topics `["burn", from: Address], data = [amount:
     /// i128]`
     fn burn(env: Env, from: Address, amount: i128);
+    fn verify_burn(env: Env, from: Address, amount: i128) {}
 
     /// Burn `amount` from `from`, consuming the allowance of `spender`.
     ///
@@ -243,6 +257,7 @@ pub trait Interface {
     /// Emits an event with topics `["burn", from: Address], data = [amount:
     /// i128]`
     fn burn_from(env: Env, spender: Address, from: Address, amount: i128);
+    fn verify_burn_from(env: Env, spender: Address, from: Address, amount: i128) {}
 
     /// Returns the number of decimals used to represent amounts of this token.
     ///
@@ -250,6 +265,7 @@ pub trait Interface {
     ///
     /// If the contract has not yet been initialized.
     fn decimals(env: Env) -> u32;
+    fn verify_decimals(env: Env) {}
 
     /// Returns the name for this token.
     ///
@@ -257,6 +273,7 @@ pub trait Interface {
     ///
     /// If the contract has not yet been initialized.
     fn name(env: Env) -> String;
+    fn verify_name(env: Env) {}
 
     /// Returns the symbol for this token.
     ///
@@ -264,4 +281,5 @@ pub trait Interface {
     ///
     /// If the contract has not yet been initialized.
     fn symbol(env: Env) -> String;
+    fn verify_symbol(env: Env) {}
 }
