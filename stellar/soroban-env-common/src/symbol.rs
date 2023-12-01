@@ -56,6 +56,14 @@ impl Symbol {
         &self.0
     }
 
+    pub fn to_le_bytes(&self) -> [u8; SCSYMBOL_LIMIT] {
+        self.0
+    }
+
+    pub fn from_le_bytes(bytes: [u8; SCSYMBOL_LIMIT]) -> Self {
+        Symbol(bytes)
+    }
+
     pub const fn from(s: &str) -> Self {
         Self::new_from_str(s)
     }
@@ -143,6 +151,17 @@ mod test {
         let sym = crate::Symbol::new_from_str(s);
         let val = sym.to_val();
         let sym2 = crate::Symbol::from_val(val).unwrap();
+        assert_eq!(sym, sym2);
+        let as_str = sym2.as_str();
+        assert_eq!(as_str, s);
+    }
+
+    #[test]
+    fn test_symbol_to_le_bytes() {
+        let s = "hello";
+        let sym = crate::Symbol::new_from_str(s);
+        let bytes = sym.to_le_bytes();
+        let sym2 = crate::Symbol::from_le_bytes(bytes);
         assert_eq!(sym, sym2);
         let as_str = sym2.as_str();
         assert_eq!(as_str, s);
