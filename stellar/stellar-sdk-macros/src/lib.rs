@@ -4,7 +4,7 @@ use quote::{format_ident, quote, ToTokens};
 use soroban_rs_spec::generate_from_file;
 use syn::{
     parse_macro_input, Block, Data, DataEnum, DeriveInput, Error, Expr, Fields, FieldsNamed,
-    FieldsUnnamed, FnArg, ItemFn, Pat, PatIdent,
+    FieldsUnnamed, FnArg, ItemFn, ItemTrait, Pat, PatIdent,
 };
 
 const KANI_UNWIND: usize = 20;
@@ -271,6 +271,50 @@ pub fn verify(
 
     }
     .into()
+}
+
+#[proc_macro_attribute]
+pub fn verifiable(
+    _args: proc_macro::TokenStream,
+    input: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    let input: TokenStream = input.into();
+
+    let Ok(item_trait) = syn::parse2::<ItemTrait>(input) else {
+        panic!("use #[verifiable] on a trait")
+    };
+
+    // Extract the trait name
+    let trait_name = &item_trait.ident;
+
+    // Generate verify_ functions for each trait method
+    let verify_functions = item_trait
+        .items
+        .iter()
+        .filter_map(|item| {
+            if let syn::TraitItem::Fn(method) = item {
+                let method_name = &method.sig.ident;
+                let verify_method_name =
+                    format_ident!("verify_{}", method_name, span = method_name.span());
+                Some(quote! {
+                    #item
+                    fn #verify_method_name() {
+                    }
+                })
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+
+    // Combine the generated test functions into a single TokenStream
+    let expanded = quote! {
+        trait #trait_name {
+            #( #verify_functions )*
+        }
+    };
+
+    expanded.into()
 }
 
 #[proc_macro]

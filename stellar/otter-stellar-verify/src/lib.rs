@@ -30,7 +30,8 @@ pub use {
         Vec,
     },
     stellar_sdk_macros::{
-        contract, contracterror, contractimpl, contractimport, contractmeta, contracttype, verify,
+        contract, contracterror, contractimpl, contractimport, contractmeta, contracttype,
+        verifiable, verify,
     },
     xdr::{FromXdr, ToXdr},
 };
