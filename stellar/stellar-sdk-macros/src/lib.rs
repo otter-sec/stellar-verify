@@ -346,6 +346,10 @@ pub fn contracttype(
     let input = parse_macro_input!(input as DeriveInput);
     let ident = &input.ident;
 
+    let mut derive_arbitrary = quote! {
+        #[cfg_attr(any(kani, feature="kani"), derive(kani::Arbitrary))]
+    };
+
     let derived = match &input.data {
         Data::Struct(s) => match &s.fields {
             Fields::Named(FieldsNamed { named, .. }) => {
@@ -363,9 +367,9 @@ pub fn contracttype(
 
                 // Generate to_le_bytes and from_le_bytes
                 let to_from_bytes = generate_from_to_le_bytes(struct_name.clone());
-
                 // Combine serialization and deserialization code
                 let result = quote! {
+                    #derive_arbitrary
                     #input
                     impl #struct_name {
                         #serialize_code
@@ -395,6 +399,7 @@ pub fn contracttype(
 
                 // Combine serialization and deserialization code
                 let result = quote! {
+                    #derive_arbitrary
                     #input
                     impl #struct_name {
                         #serialize_code
@@ -423,14 +428,20 @@ pub fn contracttype(
                 #from_val_enum_impl
             };
 
+            // Only derive kani if there are more than one variants
+            if enum_data.variants.len() <= 1 {
+                derive_arbitrary = quote! {};
+            }
+
             expanded
         }
         Data::Union(_u) => {
             Error::new(ident.span(), "unions are unsupported as contract types").to_compile_error()
         }
     };
-    quote! {
 
+    quote! {
+        #derive_arbitrary
         #struct_in
 
         #derived

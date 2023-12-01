@@ -4,7 +4,6 @@ use soroban_sdk::{contract, contractimpl, contracttype, Address, BytesN, Env};
 extern crate alloc;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
-#[cfg_attr(kani, derive(kani::Arbitrary))]
 #[contracttype]
 pub enum DataKey {
     SignerCnt,

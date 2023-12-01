@@ -3,9 +3,8 @@ use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, E
 extern crate alloc;
 use alloc::vec::Vec;
 
-#[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(kani, derive(kani::Arbitrary))]
+#[contracttype]
 pub struct State {
     pub count: u32,
     pub last_incr: u32,
