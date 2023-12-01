@@ -52,13 +52,24 @@ impl Env {
         }
     }
 
-    pub fn invoke_contract<T>(
+    #[cfg(any(kani, feature = "kani"))]
+    pub fn invoke_contract<T: kani::Arbitrary>(
         &self,
         _contract_address: &Address,
         _func: &crate::Symbol,
         _args: Vec<Val>,
     ) -> T {
-        todo!("Not yet implemented");
+        kani::any()
+    }
+
+    #[cfg(not(any(kani, feature = "kani")))]
+    pub fn invoke_contract<T: kani::Arbitrary>(
+        &self,
+        _contract_address: &Address,
+        _func: &crate::Symbol,
+        _args: Vec<Val>,
+    ) -> T {
+        unimplemented!("Cross-contract calls not supported");
     }
 
     pub fn mock_all_auths(&self) {}
