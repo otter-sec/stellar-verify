@@ -214,7 +214,7 @@ pub fn verify(
                                 format_ident!("{}_clone", arg_name, span = arg_name.span());
                             arg_names.push(cloned_env.clone());
                             arg_initializations.push(quote! {
-                                let #arg_name = Env::default();
+                                let #arg_name = kani::any::<Env>();
                             });
                             env_clone_register_contract.push(quote! {
                                 // Clone the environment
