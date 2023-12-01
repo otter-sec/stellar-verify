@@ -55,19 +55,11 @@ pub fn contractimpl(
                     pub fn #method_name(#(#inputs),*) #output {}
                 },
                 syn::ReturnType::Type(_, t) => {
-                    let type_str = t.clone().to_token_stream().to_string();
-                    if type_str.contains("Val") {
-                        quote! {
-                           pub fn #method_name(#(#inputs),*) #output {
-                               Default::default()
-                           }
-                        }
-                    } else {
-                        quote! {
+                    quote! {
                             pub fn #method_name(#(#inputs),*) #output {
                                 kani::any()
                             }
-                        }
+
                     }
                 }
             };
