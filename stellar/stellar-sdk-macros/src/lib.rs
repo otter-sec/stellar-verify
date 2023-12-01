@@ -282,8 +282,8 @@ pub fn verify(
 }
 
 #[proc_macro]
-pub fn contractmeta(metadata: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    metadata
+pub fn contractmeta(_metadata: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    quote! {}.into()
 }
 
 #[derive(Debug, FromMeta)]
