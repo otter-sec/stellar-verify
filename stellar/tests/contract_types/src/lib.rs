@@ -1,4 +1,4 @@
-use soroban_sdk::{contracttype, Address, Symbol};
+use soroban_sdk::{contracttype, Address, BytesN, Symbol};
 extern crate alloc;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Default)]
@@ -14,6 +14,7 @@ pub struct User {
     pub address: Address,
     pub name: Symbol,
     pub age: u64,
+    pub data: BytesN<32>,
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
