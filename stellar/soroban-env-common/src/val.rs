@@ -89,6 +89,13 @@ impl Val {
     }
 }
 
+#[cfg(any(kani, feature = "kani"))]
+impl kani::Arbitrary for Val {
+    fn any() -> Val {
+        Val::default()
+    }
+}
+
 // Define the ToVal trait
 pub trait ToValEnum {
     fn to_val(&self) -> Val;
