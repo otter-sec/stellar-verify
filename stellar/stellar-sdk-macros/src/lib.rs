@@ -541,6 +541,24 @@ fn generate_deserialize_code(
         let field_name = &field.ident;
         let field_ty = &field.ty;
 
+        let size_expr = match field_ty {
+            syn::Type::Path(type_path) if type_path.path.segments.len() == 1 => {
+                let segment = &type_path.path.segments[0];
+                if segment.ident == "BytesN" {
+                    match &segment.arguments {
+                        syn::PathArguments::AngleBracketed(args) if args.args.len() == 1 => {
+                            let arg = &args.args[0];
+                            quote! { #arg }
+                        }
+                        _ => quote! { core::mem::size_of::<#field_ty>() },
+                    }
+                } else {
+                    quote! { core::mem::size_of::<#field_ty>() }
+                }
+            }
+            _ => quote! { core::mem::size_of::<#field_ty>() },
+        };
+
         let field_name_bytes = match field_name {
             Some(ident) => format_ident!("{}_bytes", ident.to_string(), span = ident.span()),
             None => {
@@ -551,10 +569,10 @@ fn generate_deserialize_code(
             }
         };
         quote! {
-            let mut #field_name_bytes = [0u8; core::mem::size_of::<#field_ty>()];
-            #field_name_bytes.copy_from_slice(&buf[offset..offset + core::mem::size_of::<#field_ty>()]);
+            let mut #field_name_bytes = [0u8; #size_expr];
+            #field_name_bytes.copy_from_slice(&buf[offset..offset + #size_expr]);
             let #field_name = <#field_ty>::from_le_bytes(#field_name_bytes);
-            offset += core::mem::size_of::<#field_ty>();
+            offset += #size_expr;
         }
     });
 
