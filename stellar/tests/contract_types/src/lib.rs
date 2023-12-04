@@ -51,6 +51,10 @@ mod test {
             address: Address::new(&env),
             name: Symbol::from("test"),
             age: 18,
+            data: BytesN::from_array(&[
+                1u8, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3,
+                4, 5, 6, 7, 8,
+            ]),
         };
         let serialized = user.serialize();
         let deserialized = User::deserialize(&serialized);
