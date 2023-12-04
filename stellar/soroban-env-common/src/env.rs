@@ -63,7 +63,7 @@ impl Env {
     }
 
     #[cfg(not(any(kani, feature = "kani")))]
-    pub fn invoke_contract<T: kani::Arbitrary>(
+    pub fn invoke_contract<T>(
         &self,
         _contract_address: &Address,
         _func: &crate::Symbol,
