@@ -54,7 +54,7 @@ pub fn contractimpl(
                 syn::ReturnType::Default => quote! {
                     pub fn #method_name(#(#inputs),*) #output {}
                 },
-                syn::ReturnType::Type(_, t) => {
+                syn::ReturnType::Type(_, _) => {
                     quote! {
                             pub fn #method_name(#(#inputs),*) #output {
                                 kani::any()
