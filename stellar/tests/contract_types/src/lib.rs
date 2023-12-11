@@ -18,7 +18,6 @@ pub struct User {
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
-#[cfg_attr(kani, derive(kani::Arbitrary))]
 #[contracttype]
 pub enum DataKey {
     SignerCnt,
