@@ -1,7 +1,6 @@
 #![no_std]
 use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol};
 extern crate alloc;
-use alloc::vec::Vec;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[contracttype]
