@@ -1,4 +1,4 @@
-use std::cell::{RefCell, RefMut};
+use std::cell::{Ref, RefCell};
 use std::fmt::Debug;
 use std::rc::Rc;
 
@@ -14,17 +14,17 @@ pub struct Storage {
 
 #[derive(Clone, Default, Debug)]
 pub struct InstanceStorage {
-    storage: Vec<(Val, Val)>,
+    storage: Rc<RefCell<Vec<(Val, Val)>>>,
 }
 
 #[derive(Clone, Default, Debug)]
 pub struct TemporaryStorage {
-    storage: Vec<(Val, Val)>,
+    storage: Rc<RefCell<Vec<(Val, Val)>>>,
 }
 
 #[derive(Clone, Default, Debug)]
 pub struct PersistentStorage {
-    storage: Vec<(Val, Val)>,
+    storage: Rc<RefCell<Vec<(Val, Val)>>>,
 }
 
 impl PersistentStorage {
@@ -33,7 +33,8 @@ impl PersistentStorage {
         K: ToValEnum,
         V: FromValEnum,
     {
-        let matched = self.storage.iter().find(|(k, _)| *k == key.to_val());
+        let storage = self.storage.borrow();
+        let matched = storage.iter().find(|(k, _)| *k == key.to_val());
         if let Some((_, v)) = matched {
             V::from_val(v.clone())
         } else {
@@ -41,19 +42,23 @@ impl PersistentStorage {
         }
     }
 
-    pub fn set<K, V>(&mut self, key: &K, val: &V)
+    pub fn set<K, V>(&self, key: &K, val: &V)
     where
         K: ToValEnum,
         V: ToValEnum,
     {
-        let exists = self.storage.iter().position(|(k, _)| *k == key.to_val());
+        let exists = self
+            .storage
+            .borrow_mut()
+            .iter()
+            .position(|(k, _)| *k == key.to_val());
 
         match exists {
             Some(index) => {
-                self.storage[index].1 = val.to_val();
+                self.storage.borrow_mut()[index].1 = val.to_val();
             }
             None => {
-                self.storage.push((key.to_val(), val.to_val()));
+                self.storage.borrow_mut().push((key.to_val(), val.to_val()));
             }
         }
     }
@@ -62,7 +67,10 @@ impl PersistentStorage {
     where
         K: ToValEnum,
     {
-        self.storage.iter().any(|(k, _)| *k == key.to_val())
+        self.storage
+            .borrow()
+            .iter()
+            .any(|(k, _)| *k == key.to_val())
     }
 
     pub fn bump<K>(&self, _: K, _: u32, _: u32) {}
@@ -74,7 +82,8 @@ impl TemporaryStorage {
         K: ToValEnum,
         V: FromValEnum,
     {
-        let matched = self.storage.iter().find(|(k, _)| *k == key.to_val());
+        let storage = self.storage.borrow();
+        let matched = storage.iter().find(|(k, _)| *k == key.to_val());
         if let Some((_, v)) = matched {
             V::from_val(v.clone())
         } else {
@@ -82,19 +91,23 @@ impl TemporaryStorage {
         }
     }
 
-    pub fn set<K, V>(&mut self, key: &K, val: &V)
+    pub fn set<K, V>(&self, key: &K, val: &V)
     where
         K: ToValEnum,
         V: ToValEnum,
     {
-        let exists = self.storage.iter().position(|(k, _)| *k == key.to_val());
+        let exists = self
+            .storage
+            .borrow_mut()
+            .iter()
+            .position(|(k, _)| *k == key.to_val());
 
         match exists {
             Some(index) => {
-                self.storage[index].1 = val.to_val();
+                self.storage.borrow_mut()[index].1 = val.to_val();
             }
             None => {
-                self.storage.push((key.to_val(), val.to_val()));
+                self.storage.borrow_mut().push((key.to_val(), val.to_val()));
             }
         }
     }
@@ -103,7 +116,10 @@ impl TemporaryStorage {
     where
         K: ToValEnum,
     {
-        self.storage.iter().any(|(k, _)| *k == key.to_val())
+        self.storage
+            .borrow()
+            .iter()
+            .any(|(k, _)| *k == key.to_val())
     }
 
     pub fn bump<K>(&self, _: K, _: u32, _: u32) {}
@@ -115,7 +131,8 @@ impl InstanceStorage {
         K: ToValEnum,
         V: FromValEnum,
     {
-        let matched = self.storage.iter().find(|(k, _)| *k == key.to_val());
+        let storage = self.storage.borrow();
+        let matched = storage.iter().find(|(k, _)| *k == key.to_val());
         if let Some((_, v)) = matched {
             V::from_val(v.clone())
         } else {
@@ -123,19 +140,23 @@ impl InstanceStorage {
         }
     }
 
-    pub fn set<K, V>(&mut self, key: &K, val: &V)
+    pub fn set<K, V>(&self, key: &K, val: &V)
     where
         K: ToValEnum,
         V: ToValEnum,
     {
-        let exists = self.storage.iter().position(|(k, _)| *k == key.to_val());
+        let exists = self
+            .storage
+            .borrow_mut()
+            .iter()
+            .position(|(k, _)| *k == key.to_val());
 
         match exists {
             Some(index) => {
-                self.storage[index].1 = val.to_val();
+                self.storage.borrow_mut()[index].1 = val.to_val();
             }
             None => {
-                self.storage.push((key.to_val(), val.to_val()));
+                self.storage.borrow_mut().push((key.to_val(), val.to_val()));
             }
         }
     }
@@ -144,7 +165,10 @@ impl InstanceStorage {
     where
         K: ToValEnum,
     {
-        self.storage.iter().any(|(k, _)| *k == key.to_val())
+        self.storage
+            .borrow()
+            .iter()
+            .any(|(k, _)| *k == key.to_val())
     }
 
     pub fn bump(&self, _: u32, _: u32) {}
@@ -166,16 +190,16 @@ impl Storage {
         self.tokens.iter().find(|t| t.address == *address).cloned()
     }
 
-    pub fn instance(&self) -> RefMut<InstanceStorage> {
-        self.instance.borrow_mut()
+    pub fn instance(&self) -> Ref<InstanceStorage> {
+        self.instance.borrow()
     }
 
-    pub fn temporary(&self) -> RefMut<TemporaryStorage> {
-        self.temporary.borrow_mut()
+    pub fn temporary(&self) -> Ref<TemporaryStorage> {
+        self.temporary.borrow()
     }
 
-    pub fn persistent(&self) -> RefMut<PersistentStorage> {
-        self.persistent.borrow_mut()
+    pub fn persistent(&self) -> Ref<PersistentStorage> {
+        self.persistent.borrow()
     }
 
     pub fn insert_token(&mut self, token: MockToken) {
@@ -202,7 +226,7 @@ mod test {
     #[test]
     fn test_has_storage() {
         let storage = Storage::default();
-        let mut instance = storage.instance();
+        let instance = storage.instance();
         let symb = Symbol::from("test");
         let symb2 = Symbol::from("test1");
         let value = 10;
@@ -214,7 +238,7 @@ mod test {
     #[test]
     fn test_has_storage_with_enum() {
         let storage = Storage::default();
-        let mut instance = storage.instance();
+        let instance = storage.instance();
         let symb = Symbol::from("test");
         let symb2 = Symbol::from("test1");
         let value = 10;
