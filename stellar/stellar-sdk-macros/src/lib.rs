@@ -189,6 +189,10 @@ pub fn verify(
     // Create a Vec to store the input argument names
     let mut arg_names = Vec::new();
     let mut arg_initializations = Vec::new();
+
+    // Set the default name of the environment variable
+    let mut env_name = Ident::new("env", proc_macro2::Span::call_site());
+
     let mut env_clone_register_contract = Vec::new();
 
     // Iterate over the function's arguments and add their names to the Vec
@@ -201,18 +205,16 @@ pub fn verify(
                 if let syn::Type::Path(path) = arg_ty.as_ref() {
                     if let Some(segment) = path.path.segments.first() {
                         if segment.ident == "Env" {
+                            // Update the name of the environment variable
+                            env_name = arg_name.clone();
                             // The argument type is Env
                             let cloned_env =
                                 format_ident!("{}_clone", arg_name, span = arg_name.span());
                             arg_names.push(cloned_env.clone());
-                            arg_initializations.push(quote! {
-                                let #arg_name = kani::any::<Env>();
-                            });
+
                             env_clone_register_contract.push(quote! {
                                 // Clone the environment
                                 let #cloned_env = #arg_name.clone();
-                                // Register the contract
-                                let _ = #arg_name.register_contract(None, 0);
                             });
                         } else {
                             arg_names.push(arg_name.clone());
@@ -248,7 +250,9 @@ pub fn verify(
         #[kani::unwind(#KANI_UNWIND)]
         #[kani::solver(kissat)]
         #visiblity fn #proof_name() {
-
+            // Register the contract
+            let #env_name = kani::any::<Env>();
+            let _ = #env_name.register_contract(None, 0);
             // First: Initialize the environment and declare the variables
             #(#arg_initializations)*
             #(#extracted_content)*
