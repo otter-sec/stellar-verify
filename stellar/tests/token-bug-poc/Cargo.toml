@@ -1,0 +1,11 @@
+[package]
+name = "token-bug-poc"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies]
+soroban-sdk = { package = "otter-stellar-verify", path = "../../otter-stellar-verify" }
+
+[features]
+kani = ["soroban-sdk/kani"]
