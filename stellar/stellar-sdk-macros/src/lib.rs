@@ -212,7 +212,7 @@ pub fn verify(
                                 // Clone the environment
                                 let #cloned_env = #arg_name.clone();
                                 // Register the contract
-                                let _ = #arg_name.register_contract(None, 0);
+                                // let _ = #arg_name.register_contract(None, 0);
                             });
                         } else {
                             arg_names.push(arg_name.clone());
