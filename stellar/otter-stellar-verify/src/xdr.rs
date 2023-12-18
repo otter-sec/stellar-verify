@@ -1,8 +1,8 @@
 use crate::Bytes;
-use soroban_env_common::{ConversionError, Env};
+use soroban_env_common::{ConversionError, Env, ToValEnum};
 
 #[cfg(any(kani, feature = "kani"))]
-use soroban_env_common::{FromValEnum, ToValEnum};
+use soroban_env_common::FromValEnum;
 
 pub trait ToXdr {
     fn to_xdr(self, _env: &Env) -> Bytes;

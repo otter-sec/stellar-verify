@@ -58,7 +58,7 @@ impl IncrementContract {
         // Construct a key for the data being stored. Use an enum to set the
         // contract up well for adding other types of data to be stored.
         let key = DataKey::Counter(user);
-        let data = DataKey::Data(byte_data.clone());
+        let data = DataKey::Data(byte_data);
 
         // Save the count.
         env.storage().persistent().set(&key, &data);
@@ -87,7 +87,7 @@ mod test {
             1u8, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4,
             5, 6, 7, 8,
         ]);
-        let hello = IncrementContract::increment(env.clone(), user, bydata.clone());
+        let hello = IncrementContract::increment(env.clone(), user, bydata);
 
         match hello {
             DataKey::Data(data) => {

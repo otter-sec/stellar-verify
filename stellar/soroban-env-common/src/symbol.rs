@@ -76,8 +76,14 @@ impl Symbol {
         let mut n = 0;
         let sym_bytes = symbol.as_bytes();
         let mut bytes = [b'\x00'; SCSYMBOL_LIMIT];
+        // Limit the number of bytes copied to the length of the symbol or 10, whichever is less
+        let limit = if sym_bytes.len() > SCSYMBOL_LIMIT {
+            SCSYMBOL_LIMIT
+        } else {
+            sym_bytes.len()
+        };
         // Copy from sym_bytes to bytes
-        while n < sym_bytes.len() {
+        while n < limit {
             bytes[n] = sym_bytes[n];
             n += 1;
         }
