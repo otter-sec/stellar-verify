@@ -1,5 +1,5 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol};
+use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol, Vec};
 extern crate alloc;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -12,6 +12,12 @@ pub struct State {
 #[contracttype]
 #[derive(Clone)]
 pub struct Pair(Address, Address);
+
+#[contracttype]
+#[derive(Clone)]
+pub enum DataKey {
+    AllPairs,
+}
 
 const STATE: Symbol = symbol_short!("STATE");
 
@@ -50,6 +56,34 @@ impl IncrementContract {
             count: 0,
             last_incr: 0,
         }) // If no value set, assume 0.
+    }
+
+    #[cfg_attr(any(kani, feature = "kani"), verify, init({}))]
+    pub fn create_pair_vec() {
+        let env = Env::default();
+        let mut vec_address = Vec::<Address>::new(&env);
+        let a1 = Address::new(&env);
+        let a2 = Address::new(&env);
+        let a3 = Address::new(&env);
+        let a4 = Address::new(&env);
+        let a5 = Address::new(&env);
+        let a6 = Address::new(&env);
+        let a7 = Address::new(&env);
+        let a8 = Address::new(&env);
+        let a9 = Address::new(&env);
+        vec_address.push_back(a1);
+        vec_address.push_back(a2);
+        vec_address.push_back(a3);
+        vec_address.push_back(a4);
+        // vec_address.push_back(a5);
+        // vec_address.push_back(a6);
+        // vec_address.push_back(a7);
+        // vec_address.push_back(a8);
+        // vec_address.push_back(a9);
+
+        env.storage()
+            .instance()
+            .set(&DataKey::AllPairs, &vec_address);
     }
 }
 
