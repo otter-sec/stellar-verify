@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::{
     enums::EnumType,
     num::{Duration, Timepoint},
@@ -22,7 +24,7 @@ pub enum Val {
     #[default]
     Void,
     Struct(Vec<u8>),
-    VecVal(crate::Vec<Box<Val>>),
+    VecVal(crate::Vec<Rc<Val>>),
     EnumVal(EnumType),
     BytesNVal(crate::Vec<u8>),
     MapVal(Vec<(Val, Val)>),

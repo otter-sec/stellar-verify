@@ -1,5 +1,5 @@
 use core::slice;
-use std::ops;
+use std::{borrow::Borrow, ops, rc::Rc};
 
 use crate::{Env, FromValEnum, ToValEnum, Val};
 
@@ -302,7 +302,8 @@ impl<T: Default + FromValEnum> FromValEnum for Vec<T> {
             } else {
                 let mut v = Vec::new(&Env::default());
                 for i in u.iter() {
-                    v.push(T::from_val(*i.clone()).unwrap());
+                    let val: Val = <Rc<Val> as Borrow<Val>>::borrow(i).clone();
+                    v.push(T::from_val(val).unwrap());
                 }
                 Some(v)
             }
@@ -314,7 +315,7 @@ impl<T: Default + FromValEnum> FromValEnum for Vec<T> {
 
 impl<T: Default + ToValEnum> ToValEnum for Vec<T> {
     fn to_val(&self) -> Val {
-        Val::VecVal(self.into_iter().map(|v| Box::new(v.to_val())).collect())
+        Val::VecVal(self.into_iter().map(|v| Rc::new(v.to_val())).collect())
     }
 }
 
