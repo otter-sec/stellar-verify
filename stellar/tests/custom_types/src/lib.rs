@@ -84,6 +84,11 @@ impl IncrementContract {
         env.storage()
             .instance()
             .set(&DataKey::AllPairs, &vec_address);
+
+        env.storage()
+            .instance()
+            .get(&DataKey::AllPairs)
+            .unwrap_or(vec_address);
     }
 }
 
