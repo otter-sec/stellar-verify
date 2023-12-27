@@ -16,8 +16,9 @@ impl<T> ToXdr for T
 where
     T: ToValEnum,
 {
-    fn to_xdr(self, _env: &Env) -> Bytes {
-        kani::any::<Bytes>()
+    fn to_xdr(self, env: &Env) -> Bytes {
+        // kani::any::<Bytes>()
+        Bytes::new(env)
     }
 }
 
