@@ -132,3 +132,18 @@ where
         Self::new(&Env::default())
     }
 }
+
+#[cfg(any(kani, feature = "kani"))]
+impl<K, V> kani::Arbitrary for Map<K, V>
+where
+    K: kani::Arbitrary + Default + PartialEq + Eq + PartialOrd + Ord + Clone + Copy,
+    V: kani::Arbitrary + Default + PartialEq + Eq + PartialOrd + Ord + Clone + Copy,
+{
+    fn any() -> Self {
+        let mut map = Map::<K, V>::new(&Env::default());
+        for _ in 0..kani::any::<u8>() % (CAPACITY as u8) {
+            map.set(kani::any(), kani::any());
+        }
+        map
+    }
+}
