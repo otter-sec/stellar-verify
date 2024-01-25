@@ -12,14 +12,14 @@ pub fn generate_fns(_name: &str, specs: &[&ScSpecFunctionV0]) -> TokenStream {
     let fns: Vec<_> = specs
         .iter()
         .map(|s| {
-            let fn_ident = format_ident!("{}", s.name.to_string().unwrap());
+            let fn_ident = format_ident!("{}", s.name.to_string());
             let mut trait_fn_inputs = Vec::new();
 
             let fn_inputs: Vec<TokenStream> = s
                 .inputs
                 .iter()
                 .map(|input| {
-                    let name = format_ident!("{}", input.name.to_string().unwrap());
+                    let name = format_ident!("{}", input.name.to_string());
                     let type_ident = generate_type_ident(&input.type_);
                     trait_fn_inputs.push(quote! { #name: #type_ident });
                     quote! { #name: &#type_ident }
