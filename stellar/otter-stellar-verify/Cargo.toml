@@ -13,4 +13,5 @@ rand =  "0.8"
 
 [features]
 default = []
+testutils = []
 kani = ["dep:kani", "soroban-env-common/kani" ]
