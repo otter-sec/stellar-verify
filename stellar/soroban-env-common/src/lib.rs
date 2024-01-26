@@ -1,3 +1,5 @@
+#![feature(trait_alias)]
+
 pub mod address;
 pub mod enums;
 pub mod env;
@@ -6,13 +8,14 @@ pub mod storage;
 pub mod string;
 pub mod symbol;
 pub mod token;
+pub mod tuple;
 pub mod val;
 pub mod vec;
 
 pub use {
     address::Address,
     enums::EnumType,
-    env::{Env, IntoVal, TryFromVal},
+    env::{Env, IntoVal},
     num::{Duration, Timepoint},
     storage::Storage,
     string::String,

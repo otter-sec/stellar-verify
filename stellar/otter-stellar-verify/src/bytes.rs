@@ -139,7 +139,7 @@ impl<const N: usize> Default for BytesN<N> {
 }
 
 impl<const N: usize> ToValEnum for BytesN<N> {
-    fn to_val(&self) -> crate::Val {
+    fn into_val(&self) -> crate::Val {
         crate::Val::BytesNVal(self.0)
     }
 }

@@ -9,6 +9,7 @@ pub mod map;
 pub mod prng;
 pub mod symbol;
 pub mod testutils;
+pub mod unwrap;
 pub mod xdr;
 
 pub use {
@@ -22,7 +23,7 @@ pub use {
     prng::Prng,
     soroban_env_common::{
         address::Address,
-        env::{Env, IntoVal, TryFromVal},
+        env::{Env, IntoVal},
         symbol::Symbol,
         symbol_short,
         token::{self, AdminClient, Client, Interface, MockToken},
@@ -30,8 +31,8 @@ pub use {
         Vec,
     },
     stellar_sdk_macros::{
-        contract, contracterror, contractimpl, contractimport, contractmeta, contracttype,
-        verifiable, verify,
+        contract, contractclient, contracterror, contractimpl, contractimport, contractmeta,
+        contracttype, verifiable, verify,
     },
     xdr::{FromXdr, ToXdr},
 };
@@ -60,6 +61,13 @@ macro_rules! vec {
     ($($x:expr),+ $(,)?) => (
         $crate::Vec::from([$($x),+])
     );
+}
+
+#[macro_export]
+macro_rules! panic_with_error {
+    ($env:expr, $error:expr) => {{
+        panic!("{}", $error);
+    }};
 }
 
 #[cfg(any(kani, feature = "kani"))]

@@ -61,7 +61,7 @@ impl From<&str> for String {
 }
 
 impl ToValEnum for crate::String {
-    fn to_val(&self) -> Val {
+    fn into_val(&self) -> Val {
         Val::String(*self)
     }
 }
@@ -91,7 +91,7 @@ mod test {
     fn test_string() {
         let s = "hello";
         let s = crate::String::from(s);
-        let val = s.to_val();
+        let val = s.into_val();
         let s2 = crate::String::from_val(val).unwrap();
         assert_eq!(s, s2);
         let as_str = s2.as_str();

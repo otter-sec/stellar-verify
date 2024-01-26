@@ -123,7 +123,7 @@ impl Symbol {
 }
 
 impl ToValEnum for Symbol {
-    fn to_val(&self) -> Val {
+    fn into_val(&self) -> Val {
         Val::SymbolVal(*self)
     }
 }
@@ -155,7 +155,7 @@ mod test {
     fn test_symbol() {
         let s = "hello";
         let sym = crate::Symbol::new_from_str(s);
-        let val = sym.to_val();
+        let val = sym.into_val();
         let sym2 = crate::Symbol::from_val(val).unwrap();
         assert_eq!(sym, sym2);
         let as_str = sym2.as_str();

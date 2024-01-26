@@ -16,11 +16,11 @@ where
     K: ToValEnum + PartialEq + Eq + PartialOrd + Ord,
     V: ToValEnum + PartialEq + Eq + PartialOrd + Ord,
 {
-    fn to_val(&self) -> Val {
+    fn into_val(&self) -> Val {
         let map_val: Vec<(Val, Val)> = self
             .buckets
             .iter()
-            .map(|(k, v)| (k.to_val(), v.to_val()))
+            .map(|(k, v)| (k.into_val(), v.into_val()))
             .collect();
 
         Val::MapVal(map_val)

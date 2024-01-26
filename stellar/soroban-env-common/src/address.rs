@@ -46,7 +46,7 @@ impl<E: internal::Env> IntoVal<E, (Address, Address, i128, i128)>
 }
 
 impl ToValEnum for Address {
-    fn to_val(&self) -> crate::Val {
+    fn into_val(&self) -> crate::Val {
         crate::Val::AddressObj(self.val as u32)
     }
 }

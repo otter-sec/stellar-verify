@@ -34,7 +34,7 @@ impl PersistentStorage {
         V: FromValEnum,
     {
         let storage = self.storage.borrow();
-        let matched = storage.iter().find(|(k, _)| *k == key.to_val());
+        let matched = storage.iter().find(|(k, _)| *k == key.into_val());
         if let Some((_, v)) = matched {
             V::from_val(v.clone())
         } else {
@@ -51,14 +51,16 @@ impl PersistentStorage {
             .storage
             .borrow_mut()
             .iter()
-            .position(|(k, _)| *k == key.to_val());
+            .position(|(k, _)| *k == key.into_val());
 
         match exists {
             Some(index) => {
-                self.storage.borrow_mut()[index].1 = val.to_val();
+                self.storage.borrow_mut()[index].1 = val.into_val();
             }
             None => {
-                self.storage.borrow_mut().push((key.to_val(), val.to_val()));
+                self.storage
+                    .borrow_mut()
+                    .push((key.into_val(), val.into_val()));
             }
         }
     }
@@ -70,7 +72,7 @@ impl PersistentStorage {
         self.storage
             .borrow()
             .iter()
-            .any(|(k, _)| *k == key.to_val())
+            .any(|(k, _)| *k == key.into_val())
     }
 
     pub fn extend_ttl<K>(&self, _: K, _: u32, _: u32) {}
@@ -83,7 +85,7 @@ impl TemporaryStorage {
         V: FromValEnum,
     {
         let storage = self.storage.borrow();
-        let matched = storage.iter().find(|(k, _)| *k == key.to_val());
+        let matched = storage.iter().find(|(k, _)| *k == key.into_val());
         if let Some((_, v)) = matched {
             V::from_val(v.clone())
         } else {
@@ -100,14 +102,16 @@ impl TemporaryStorage {
             .storage
             .borrow_mut()
             .iter()
-            .position(|(k, _)| *k == key.to_val());
+            .position(|(k, _)| *k == key.into_val());
 
         match exists {
             Some(index) => {
-                self.storage.borrow_mut()[index].1 = val.to_val();
+                self.storage.borrow_mut()[index].1 = val.into_val();
             }
             None => {
-                self.storage.borrow_mut().push((key.to_val(), val.to_val()));
+                self.storage
+                    .borrow_mut()
+                    .push((key.into_val(), val.into_val()));
             }
         }
     }
@@ -119,7 +123,7 @@ impl TemporaryStorage {
         self.storage
             .borrow()
             .iter()
-            .any(|(k, _)| *k == key.to_val())
+            .any(|(k, _)| *k == key.into_val())
     }
 
     pub fn extend_ttl<K>(&self, _: K, _: u32, _: u32) {}
@@ -132,7 +136,7 @@ impl InstanceStorage {
         V: FromValEnum,
     {
         let storage = self.storage.borrow();
-        let matched = storage.iter().find(|(k, _)| *k == key.to_val());
+        let matched = storage.iter().find(|(k, _)| *k == key.into_val());
         if let Some((_, v)) = matched {
             V::from_val(v.clone())
         } else {
@@ -149,14 +153,16 @@ impl InstanceStorage {
             .storage
             .borrow_mut()
             .iter()
-            .position(|(k, _)| *k == key.to_val());
+            .position(|(k, _)| *k == key.into_val());
 
         match exists {
             Some(index) => {
-                self.storage.borrow_mut()[index].1 = val.to_val();
+                self.storage.borrow_mut()[index].1 = val.into_val();
             }
             None => {
-                self.storage.borrow_mut().push((key.to_val(), val.to_val()));
+                self.storage
+                    .borrow_mut()
+                    .push((key.into_val(), val.into_val()));
             }
         }
     }
@@ -168,7 +174,7 @@ impl InstanceStorage {
         self.storage
             .borrow()
             .iter()
-            .any(|(k, _)| *k == key.to_val())
+            .any(|(k, _)| *k == key.into_val())
     }
 
     pub fn extend_ttl(&self, _: u32, _: u32) {}

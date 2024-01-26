@@ -4,7 +4,7 @@ use crate::{FromValEnum, ToValEnum, Val};
 pub struct Timepoint(u64);
 
 impl ToValEnum for Timepoint {
-    fn to_val(&self) -> Val {
+    fn into_val(&self) -> Val {
         Val::TimepointVal(Timepoint(self.0))
     }
 }
@@ -36,7 +36,7 @@ impl kani::Arbitrary for Timepoint {
 pub struct Duration(u64);
 
 impl ToValEnum for Duration {
-    fn to_val(&self) -> Val {
+    fn into_val(&self) -> Val {
         Val::DurationVal(Duration(self.0))
     }
 }
@@ -59,7 +59,7 @@ impl kani::Arbitrary for Duration {
 }
 
 impl ToValEnum for u32 {
-    fn to_val(&self) -> Val {
+    fn into_val(&self) -> Val {
         Val::U32Val(*self)
     }
 }
@@ -81,7 +81,7 @@ impl From<u32> for Val {
 }
 
 impl ToValEnum for i32 {
-    fn to_val(&self) -> Val {
+    fn into_val(&self) -> Val {
         Val::I32Val(*self)
     }
 }
@@ -97,7 +97,7 @@ impl FromValEnum for i32 {
 }
 
 impl ToValEnum for u64 {
-    fn to_val(&self) -> Val {
+    fn into_val(&self) -> Val {
         Val::U64Val(*self)
     }
 }
@@ -113,7 +113,7 @@ impl FromValEnum for u64 {
 }
 
 impl ToValEnum for i64 {
-    fn to_val(&self) -> Val {
+    fn into_val(&self) -> Val {
         Val::I64Val(*self)
     }
 }
@@ -129,7 +129,7 @@ impl FromValEnum for i64 {
 }
 
 impl ToValEnum for i128 {
-    fn to_val(&self) -> Val {
+    fn into_val(&self) -> Val {
         Val::I128(*self)
     }
 }
@@ -145,7 +145,7 @@ impl FromValEnum for i128 {
 }
 
 impl ToValEnum for u128 {
-    fn to_val(&self) -> Val {
+    fn into_val(&self) -> Val {
         Val::U128(*self)
     }
 }

@@ -28,6 +28,7 @@ pub enum Val {
     EnumVal(EnumType),
     BytesNVal(crate::Vec<u8>),
     MapVal(Vec<(Val, Val)>),
+    TupleVal(Vec<Val>),
 }
 
 impl Val {
@@ -100,7 +101,7 @@ impl kani::Arbitrary for Val {
 
 // Define the ToVal trait
 pub trait ToValEnum {
-    fn to_val(&self) -> Val;
+    fn into_val(&self) -> Val;
 }
 
 // Define the FromVal trait
@@ -109,7 +110,7 @@ pub trait FromValEnum: Sized {
 }
 
 impl ToValEnum for bool {
-    fn to_val(&self) -> Val {
+    fn into_val(&self) -> Val {
         Val::BoolVal(*self)
     }
 }
