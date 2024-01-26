@@ -508,6 +508,12 @@ pub fn contracterror(
                 kani::any()
             }
         }
+
+        impl core::fmt::Display for #enum_name {
+             fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                 write!(f, "{:?}", self)
+             }
+         }
     };
 
     expanded.into()
@@ -799,4 +805,12 @@ fn abs_from_rel_to_manifest(path: impl Into<std::path::PathBuf>) -> std::path::P
     } else {
         path
     }
+}
+
+#[proc_macro_attribute]
+pub fn contractclient(
+    _: proc_macro::TokenStream,
+    input: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    input
 }
