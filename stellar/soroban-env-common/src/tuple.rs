@@ -10,8 +10,8 @@ macro_rules! find_len_idx {
 macro_rules! derive_to_val_for_tuples {
     ( $($typ:ident $idx:tt)* ) => (
         impl<$($typ:ToValEnum),*> ToValEnum for ($($typ,)*) {
-            fn to_val(&self) -> crate::Val {
-                let tuple = vec![$(self.$idx.to_val()),*];
+            fn into_val(&self) -> crate::Val {
+                let tuple = vec![$(self.$idx.into_val()),*];
                 crate::Val::TupleVal(tuple)
             }
         }

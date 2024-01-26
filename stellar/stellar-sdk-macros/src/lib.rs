@@ -666,7 +666,7 @@ fn generate_traits_for_structs(name: Ident) -> proc_macro2::TokenStream {
         }
 
         impl soroban_sdk::ToValEnum for #name {
-            fn to_val(&self) -> soroban_sdk::Val {
+            fn into_val(&self) -> soroban_sdk::Val {
                 soroban_sdk::Val::Struct(self.serialize())
             }
         }
@@ -730,7 +730,7 @@ fn generate_to_val_enum(enum_data: &DataEnum, enum_name: &Ident) -> proc_macro2:
 
     quote! {
         impl soroban_sdk::ToValEnum for #enum_name {
-            fn to_val(&self) -> soroban_sdk::Val {
+            fn into_val(&self) -> soroban_sdk::Val {
                 match self {
                     #arms
                 }
