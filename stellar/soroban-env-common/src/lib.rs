@@ -1,5 +1,3 @@
-#![feature(trait_alias)]
-
 pub mod address;
 pub mod enums;
 pub mod env;
