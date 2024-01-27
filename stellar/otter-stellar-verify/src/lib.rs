@@ -52,15 +52,12 @@ macro_rules! log {
 
 #[macro_export]
 macro_rules! vec {
-    () => (
-        ($crate::Vec::new(Env::default()))
-    );
-    ($elem:expr; $n:expr) => (
-        ($crate::Vec::from([$elem; $n]))
-    );
-    ($($x:expr),+ $(,)?) => (
-        $crate::Vec::from([$($x),+])
-    );
+    ($env:expr $(,)?) => {
+        $crate::Vec::new($env)
+    };
+    ($env:expr, $($x:expr),+ $(,)?) => {
+        $crate::Vec::from_array($env, [$($x),+])
+    };
 }
 
 #[macro_export]
