@@ -190,6 +190,20 @@ impl<T> Vec<T> {
             self.push(*z);
         }
     }
+
+    /// Removes and returns the first item.
+    ///
+    /// ### Panics
+    ///
+    /// If the vec is empty.
+    pub fn pop_front_unchecked(&mut self) -> T {
+        if self.size == 0 {
+            panic!("pop_front_unchecked called on empty Vec");
+        }
+        let res = self.data[0];
+        self.remove(0);
+        res
+    }
 }
 
 impl<T> ops::Deref for Vec<T> {
