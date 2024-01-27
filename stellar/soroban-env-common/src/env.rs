@@ -1,4 +1,4 @@
-use crate::{Address, MockToken, Storage, String, Val};
+use crate::{Address, FromValEnum, MockToken, Storage, String, ToValEnum, Val};
 use std::fmt::Debug;
 use std::{
     cell::{Ref, RefCell},
@@ -101,14 +101,24 @@ pub trait IntoVal<E: internal::Env, T> {
     fn into_val(self, e: &E) -> T;
 }
 
-pub trait TryFromVal<E: internal::Env, V: ?Sized>: Sized {
-    type Error: Debug + Into<crate::ConversionError>;
-    fn try_from_val(env: &E, v: &V) -> Result<Self, Self::Error>;
+impl<E: internal::Env, T> IntoVal<E, T> for T {
+    fn into_val(self, _env: &E) -> T {
+        self
+    }
 }
 
-impl<E: internal::Env> IntoVal<E, String> for &'static str {
-    fn into_val(self, _e: &E) -> String {
-        self.into()
+pub trait TryFromVal<E: internal::Env, V: ?Sized>: Sized {
+    type Error: Debug + Into<crate::ConversionError>;
+    fn try_from_val(env: &E, v: &Val) -> Result<Self, Self::Error>;
+}
+
+impl<E: internal::Env, T, U> TryFromVal<E, T> for U
+where
+    U: FromValEnum,
+{
+    type Error = crate::ConversionError;
+    fn try_from_val(e: &E, v: &Val) -> Result<Self, Self::Error> {
+        Ok(U::from_val(v.clone()).unwrap())
     }
 }
 

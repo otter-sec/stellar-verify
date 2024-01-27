@@ -4,6 +4,7 @@ use crate::{
     enums::EnumType,
     num::{Duration, Timepoint},
     symbol::Symbol,
+    Env,
 };
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
@@ -101,7 +102,7 @@ impl kani::Arbitrary for Val {
 
 // Define the ToVal trait
 pub trait ToValEnum {
-    fn into_val(&self) -> Val;
+    fn to_val(&self) -> Val;
 }
 
 // Define the FromVal trait
@@ -110,18 +111,17 @@ pub trait FromValEnum: Sized {
 }
 
 impl ToValEnum for bool {
-    fn into_val(&self) -> Val {
+    fn to_val(&self) -> Val {
         Val::BoolVal(*self)
     }
 }
 
-impl FromValEnum for bool {
-    fn from_val(val: Val) -> Option<bool> {
-        if let Val::BoolVal(b) = val {
-            Some(b)
-        } else {
-            None
-        }
+impl<T> FromValEnum for Option<T>
+where
+    T: FromValEnum,
+{
+    fn from_val(val: Val) -> Option<Self> {
+        Some(T::from_val(val))
     }
 }
 

@@ -13,7 +13,7 @@ pub mod unwrap;
 pub mod xdr;
 
 pub use {
-    auth::Context,
+    auth::*,
     bytes::{Bytes, BytesN},
     crypto::Crypto,
     deploy::Deployer,
@@ -23,7 +23,7 @@ pub use {
     prng::Prng,
     soroban_env_common::{
         address::Address,
-        env::{Env, IntoVal},
+        env::{Env, IntoVal, TryFromVal},
         symbol::Symbol,
         symbol_short,
         token::{self, AdminClient, Client, Interface, MockToken},

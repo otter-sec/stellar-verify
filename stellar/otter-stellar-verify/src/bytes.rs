@@ -139,7 +139,7 @@ impl<const N: usize> Default for BytesN<N> {
 }
 
 impl<const N: usize> ToValEnum for BytesN<N> {
-    fn into_val(&self) -> crate::Val {
+    fn to_val(&self) -> crate::Val {
         crate::Val::BytesNVal(self.0)
     }
 }
@@ -264,12 +264,6 @@ impl<const N: usize> kani::Arbitrary for BytesN<N> {
             v.push(kani::any::<u8>());
         }
         BytesN(v)
-    }
-}
-
-impl<E: internal::Env> IntoVal<E, BytesN<32>> for BytesN<32> {
-    fn into_val(self, _env: &E) -> BytesN<32> {
-        self
     }
 }
 

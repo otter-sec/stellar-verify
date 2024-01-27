@@ -41,6 +41,6 @@ impl Prng {
     where
         V: ToValEnum,
     {
-        v.into_iter().map(|item| item.into_val()).collect()
+        v.into_iter().map(|item| item.to_val()).collect()
     }
 }

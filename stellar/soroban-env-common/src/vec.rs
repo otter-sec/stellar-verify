@@ -314,8 +314,8 @@ impl<T: Default + FromValEnum> FromValEnum for Vec<T> {
 }
 
 impl<T: Default + ToValEnum> ToValEnum for Vec<T> {
-    fn into_val(&self) -> Val {
-        Val::VecVal(self.into_iter().map(|v| Rc::new(v.into_val())).collect())
+    fn to_val(&self) -> Val {
+        Val::VecVal(self.into_iter().map(|v| Rc::new(v.to_val())).collect())
     }
 }
 

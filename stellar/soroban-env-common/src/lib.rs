@@ -15,7 +15,7 @@ pub mod vec;
 pub use {
     address::Address,
     enums::EnumType,
-    env::{Env, IntoVal},
+    env::{Env, IntoVal, TryFromVal},
     num::{Duration, Timepoint},
     storage::Storage,
     string::String,
