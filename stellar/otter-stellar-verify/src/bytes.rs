@@ -1,4 +1,4 @@
-use soroban_env_common::{env::internal, Env, FromValEnum, IntoVal, ToValEnum, Vec};
+use soroban_env_common::{Env, FromValEnum, ToValEnum, Vec};
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Bytes(pub Vec<u8>);
 

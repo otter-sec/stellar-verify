@@ -1,4 +1,4 @@
-use crate::{Address, FromValEnum, MockToken, Storage, String, ToValEnum, Val};
+use crate::{Address, FromValEnum, MockToken, Storage, Val};
 use std::fmt::Debug;
 use std::{
     cell::{Ref, RefCell},
@@ -117,7 +117,7 @@ where
     U: FromValEnum,
 {
     type Error = crate::ConversionError;
-    fn try_from_val(e: &E, v: &Val) -> Result<Self, Self::Error> {
+    fn try_from_val(_e: &E, v: &Val) -> Result<Self, Self::Error> {
         Ok(U::from_val(v.clone()).unwrap())
     }
 }

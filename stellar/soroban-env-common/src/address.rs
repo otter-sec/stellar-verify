@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{env::internal, Env, FromValEnum, ToValEnum};
+use crate::{Env, FromValEnum, ToValEnum};
 
 #[derive(Debug, Hash, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Default)]
 pub struct Address {

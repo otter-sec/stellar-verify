@@ -1,4 +1,4 @@
-use crate::{Address, BytesN, Env, Symbol, Val, Vec};
+use crate::{Address, BytesN, Symbol, Val, Vec};
 
 #[derive(Clone)]
 //#[contracttype(crate_path = "crate", export = false)]
