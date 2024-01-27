@@ -56,7 +56,7 @@ macro_rules! vec {
         $crate::Vec::new($env)
     };
     ($env:expr, $($x:expr),+ $(,)?) => {
-        $crate::Vec::from_array($env, [$($x),+])
+        $crate::Vec::from($env, [$($x),+])
     };
 }
 
