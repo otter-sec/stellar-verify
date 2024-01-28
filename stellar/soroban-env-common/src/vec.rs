@@ -107,14 +107,21 @@ impl<T> Vec<T> {
 
     pub fn get(&self, idx: u32) -> Option<T>
     where
-        T: Copy,
+        T: Clone,
     {
         let idx = idx as usize;
         if idx >= self.size {
             return None;
         }
 
-        Some(self.data[idx])
+        Some(self.data[idx].clone())
+    }
+
+    pub fn get_unchecked(&self, idx: u32) -> T
+    where
+        T: Clone,
+    {
+        self.get(idx).expect("Call get_unchecked failed")
     }
 
     pub fn contains(&self, t: &T) -> bool
