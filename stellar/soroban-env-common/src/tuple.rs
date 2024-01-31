@@ -34,6 +34,8 @@ macro_rules! derive_to_val_for_tuples {
     );
 }
 
+derive_to_val_for_tuples! {}
+derive_to_val_for_tuples! { T0 0}
 derive_to_val_for_tuples! { T0 0 T1 1}
 derive_to_val_for_tuples! { T0 0 T1 1 T2 2}
 derive_to_val_for_tuples! { T0 0 T1 1 T2 2 T3 3}

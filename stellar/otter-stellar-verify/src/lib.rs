@@ -23,7 +23,7 @@ pub use {
     prng::Prng,
     soroban_env_common::{
         address::Address,
-        env::{Env, IntoVal, TryFromVal},
+        env::{Env, IntoVal, TryFromVal, TryIntoVal},
         symbol::Symbol,
         symbol_short,
         token::{self, AdminClient, Client, Interface, MockToken},

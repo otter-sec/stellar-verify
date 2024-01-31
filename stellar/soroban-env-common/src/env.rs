@@ -122,6 +122,33 @@ where
     }
 }
 
+pub trait TryIntoVal<E, V>
+where
+    E: internal::Env,
+    V: FromValEnum,
+{
+    // Remove the default type assignment for the Error associated type
+    type Error;
+
+    // Required method
+    fn try_into_val(&self, env: &E) -> Result<V, Self::Error>;
+}
+
+// Implement TryIntoVal for Val
+impl<E, V> TryIntoVal<E, V> for Val
+where
+    E: internal::Env,
+    V: FromValEnum,
+{
+    // Replace this with your actual error type
+    type Error = crate::ConversionError;
+
+    fn try_into_val(&self, _env: &E) -> Result<V, Self::Error> {
+        // Call V::from_val to convert Val to V
+        V::from_val(self.clone()).ok_or(crate::ConversionError)
+    }
+}
+
 #[cfg(any(kani, feature = "kani"))]
 impl kani::Arbitrary for Env {
     fn any() -> Env {
