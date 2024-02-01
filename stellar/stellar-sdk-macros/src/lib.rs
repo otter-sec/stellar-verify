@@ -118,7 +118,7 @@ pub fn contract(
         }
 
         impl #name {
-            fn create_token_contract<'a>(e: &Env, admin: &Address) -> (TokenClient_, TokenAdminClient_) {
+            fn create_token_contract<'a>(e: &soroban_sdk::Env, admin: &soroban_sdk::Address) -> (TokenClient_, TokenAdminClient_) {
                 let contract_address = e.register_stellar_asset_contract(admin.clone());
                 (
                     TokenClient_::new(e, &contract_address),
