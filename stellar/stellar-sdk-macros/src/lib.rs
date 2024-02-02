@@ -85,10 +85,10 @@ pub fn contractimpl(
 #[proc_macro_attribute]
 pub fn contract(
     _metadata: proc_macro::TokenStream,
-    input_: proc_macro::TokenStream,
+    input: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    let input = parse_macro_input!(input_ as syn::ItemStruct);
-    let name = &input.ident;
+    let item = parse_macro_input!(input as syn::ItemStruct);
+    let name = &item.ident;
 
     let client = format_ident!("{}Client", name, span = name.span());
 
@@ -99,7 +99,7 @@ pub fn contract(
         #[cfg(any(kani, feature = "kani"))]
         use soroban_sdk::kani;
 
-        #input
+        #item
 
         pub struct #client<'a> {
             pub env: soroban_sdk::Env,
