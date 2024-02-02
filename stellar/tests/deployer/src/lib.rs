@@ -40,8 +40,8 @@ impl Deployer {
             .deploy(wasm_hash);
 
         // Invoke the init function with the given arguments.
-        let res: Val = env.invoke_contract(&deployed_address, &init_fn, init_args.to_vec());
-        
+        let res: Val = env.invoke_contract(&deployed_address, &init_fn, init_args);
+
         // Return the contract ID of the deployed contract and the result of
         // invoking the init result.
         (deployed_address, res)

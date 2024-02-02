@@ -56,7 +56,11 @@ macro_rules! vec {
         $crate::Vec::new($env)
     };
     ($env:expr, $($x:expr),+ $(,)?) => {
-        $crate::Vec::from($env, [$($x),+])
+        {
+            let mut temp_vec = $crate::Vec::new($env);
+            $(temp_vec.push($x);)+
+            temp_vec
+        }
     };
 }
 
