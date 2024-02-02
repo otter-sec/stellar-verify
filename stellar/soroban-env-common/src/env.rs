@@ -57,7 +57,7 @@ impl Env {
         &self,
         _contract_address: &Address,
         _func: &crate::Symbol,
-        _args: Vec<Val>,
+        _args: crate::Vec<Val>,
     ) -> T {
         kani::any()
     }
@@ -67,7 +67,7 @@ impl Env {
         &self,
         _contract_address: &Address,
         _func: &crate::Symbol,
-        _args: Vec<Val>,
+        _args: crate::Vec<Val>,
     ) -> T {
         unimplemented!("Cross-contract calls not supported");
     }
@@ -94,6 +94,10 @@ impl Env {
             CURRENT_CONTRACT = contract_address.val;
         }
         contract_address
+    }
+
+    pub fn authorize_as_current_contract<T>(&self, _auth_entries: Vec<T>) {
+        // nop
     }
 }
 
