@@ -16,33 +16,31 @@ impl AtomicSwapContract {
     // Swap token A for token B atomically. Settle for the minimum requested price
     // for each party (this is an arbitrary choice; both parties could have
     // received the full amount as well).
-    #[cfg_attr(any(kani, feature = "kani"),
-        verify,
-        init({
-            let token_admin = Address::new(&env);
+    #[verify]
+    #[init({
+        let token_admin = Address::new(&env);
 
-            let (token_a_client, token_a_admin) = Self::create_token_contract(&env, &token_admin);
-            let token_a = token_a_client.address;
-            kani::assume(amount_a > 0);
-            token_a_admin.mint(&a, &amount_a);
+        let (token_a_client, token_a_admin) = Self::create_token_contract(&env, &token_admin);
+        let token_a = token_a_client.address;
+        kani::assume(amount_a > 0);
+        token_a_admin.mint(&a, &amount_a);
 
-            let (token_b_client, token_b_admin) = Self::create_token_contract(&env, &token_admin);
-            let token_b = token_b_client.address;
-            kani::assume(amount_b > 0);
-            token_b_admin.mint(&b, &amount_b);
-        }),
-        succeeds_if({
-                min_b_for_a < amount_b 
-                && min_a_for_b < amount_a
-                && min_a_for_b > 0
-                && min_b_for_a > 0
-        }),
-        post_condition({
-            token_a_client.balance(&a) == (amount_a - min_a_for_b) &&
-            token_a_client.balance(&b) == min_a_for_b &&
-            token_b_client.balance(&a) == min_b_for_a &&
-            token_b_client.balance(&b) == (amount_b - min_b_for_a)
-        }),
+        let (token_b_client, token_b_admin) = Self::create_token_contract(&env, &token_admin);
+        let token_b = token_b_client.address;
+        kani::assume(amount_b > 0);
+        token_b_admin.mint(&b, &amount_b);
+    })]
+    #[succeeds_if(
+        min_b_for_a < amount_b 
+        && min_a_for_b < amount_a
+        && min_a_for_b > 0
+        && min_b_for_a > 0
+    )]
+    #[post_condition(
+        token_a_client.balance(&a) == (amount_a - min_a_for_b) &&
+        token_a_client.balance(&b) == min_a_for_b &&
+        token_b_client.balance(&a) == min_b_for_a &&
+        token_b_client.balance(&b) == (amount_b - min_b_for_a)
     )]
     pub fn swap(
         env: Env,

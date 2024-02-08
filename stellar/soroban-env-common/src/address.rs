@@ -65,6 +65,14 @@ impl Address {
             Address { val: KEYS - 1 }
         }
     }
+
+    pub fn generate(_env: &Env) -> Self {
+        unsafe {
+            assert!(KEYS < MAX_KEYS, "Ran out of keys during context creation.",);
+            KEYS += 1;
+            Address { val: KEYS - 1 }
+        }
+    }
 }
 
 #[cfg(any(kani, feature = "kani"))]
