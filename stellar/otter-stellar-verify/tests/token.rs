@@ -1,6 +1,6 @@
 use otter_stellar_verify::{token, Address, Env};
 use token::AdminClient as TokenAdminClient;
-use token::Client as TokenClient;
+use token::TokenClient;
 
 fn create_token_contract(e: &Env, admin: Address) -> (TokenClient, TokenAdminClient) {
     let contract_address = e.register_stellar_asset_contract(admin);
