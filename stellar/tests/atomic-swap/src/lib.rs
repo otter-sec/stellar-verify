@@ -84,7 +84,7 @@ fn move_token(
     max_spend_amount: i128,
     transfer_amount: i128,
 ) {
-    let token = token::Client::new(env, token);
+    let token = token::TokenClient::new(env, token);
     let contract_address = env.current_contract_address();
     // This call needs to be authorized by `from` address. It transfers the
     // maximum spend amount to the swap contract's address in order to decouple

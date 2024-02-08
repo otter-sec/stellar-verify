@@ -5,7 +5,7 @@ use crate::allowance::{read_allowance, spend_allowance, write_allowance};
 use crate::balance::{read_balance, receive_balance, spend_balance};
 use crate::metadata::{read_decimal, read_name, read_symbol, write_metadata};
 use crate::storage_types::{INSTANCE_BUMP_AMOUNT, INSTANCE_LIFETIME_THRESHOLD};
-use soroban_sdk::token::{self, Interface as _};
+use soroban_sdk::token::{self, TokenInterface as _};
 use soroban_sdk::{contract, contractimpl, Address, Env, String};
 use soroban_token_sdk::metadata::TokenMetadata;
 use soroban_token_sdk::TokenUtils;
@@ -67,7 +67,7 @@ impl Token {
 }
 
 #[contractimpl]
-impl token::Interface for Token {
+impl token::TokenInterface for Token {
     fn allowance(e: Env, from: Address, spender: Address) -> i128 {
         e.storage()
             .instance()
@@ -91,13 +91,6 @@ impl token::Interface for Token {
     }
 
     fn balance(e: Env, id: Address) -> i128 {
-        e.storage()
-            .instance()
-            .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
-        read_balance(&e, id)
-    }
-
-    fn spendable_balance(e: Env, id: Address) -> i128 {
         e.storage()
             .instance()
             .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
