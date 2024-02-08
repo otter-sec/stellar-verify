@@ -18,7 +18,7 @@ pub use {
     storage::Storage,
     string::String,
     symbol::Symbol,
-    token::{AdminClient, Client, Interface, MockToken},
+    token::{AdminClient, MockToken, TokenClient, TokenInterface},
     val::{BytesObject, ConversionError, FromValEnum, ToValEnum, Val},
     vec::Vec,
 };

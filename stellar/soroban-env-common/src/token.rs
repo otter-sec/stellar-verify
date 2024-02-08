@@ -1,5 +1,13 @@
 use crate::{address::Address, env::Env, string::String};
 
+#[doc(hidden)]
+#[deprecated(note = "use TokenInterface")]
+pub use TokenInterface as Interface;
+
+#[doc(hidden)]
+#[deprecated(note = "use TokenClient")]
+pub use TokenClient as Client;
+
 #[derive(Clone, Debug, Default)]
 pub struct MockToken {
     pub address: Address,
@@ -33,12 +41,12 @@ impl MockToken {
 }
 
 #[derive(Clone, Debug)]
-pub struct Client {
+pub struct TokenClient {
     pub env: Env,
     pub address: Address,
 }
 
-impl Client {
+impl TokenClient {
     pub fn new(env: &Env, address: &Address) -> Self {
         Self {
             env: env.clone(),
@@ -74,6 +82,18 @@ impl Client {
         token.balances[from.val as usize] = new_bal_from;
         token.balances[to.val as usize] = new_bal_to;
 
+        self.env.storage.borrow_mut().update_token(token.clone());
+    }
+
+    pub fn mint(&self, to: &Address, amount: &i128) {
+        assert!(*amount > 0, "Mint amount must be positive");
+
+        let mut token = self.get_self_token();
+        let prev_bal = self.balance(to);
+
+        let new_bal = prev_bal.saturating_add(*amount);
+
+        token.balances[to.val as usize] = new_bal;
         self.env.storage.borrow_mut().update_token(token.clone());
     }
 }
@@ -134,7 +154,7 @@ impl AdminClient {
     }
 }
 
-pub trait Interface {
+pub trait TokenInterface {
     /// Returns the allowance for `spender` to transfer from `from`.
     ///
     /// # Arguments
@@ -173,17 +193,6 @@ pub trait Interface {
     ///   address has no existing balance, returns 0.
     fn balance(env: Env, id: Address) -> i128;
     fn verify_balance() {}
-
-    /// Returns the spendable balance of `id`.
-    ///
-    /// # Arguments
-    ///
-    /// * `id` - The address for which a spendable balance is being queried.
-    ///   This will return the same value as `balance()` unless this is called
-    ///   on the Stellar Asset Contract, in which case this can be less due to
-    ///   reserves/liabilities.
-    fn spendable_balance(env: Env, id: Address) -> i128;
-    fn verify_spendable_balance() {}
 
     /// Transfer `amount` from `from` to `to`.
     ///
@@ -275,4 +284,75 @@ pub trait Interface {
     /// If the contract has not yet been initialized.
     fn symbol(env: Env) -> String;
     fn verify_symbol() {}
+}
+
+pub trait StellarAssetInterface {
+    /// Sets the administrator to the specified address `new_admin`.
+    ///
+    /// # Arguments
+    ///
+    /// * `new_admin` - The address which will henceforth be the administrator
+    ///   of this token contract.
+    ///
+    /// # Events
+    ///
+    /// Emits an event with topics `["set_admin", admin: Address], data =
+    /// [new_admin: Address]`
+    fn set_admin(env: Env, new_admin: Address);
+
+    /// Returns the admin of the contract.
+    ///
+    /// # Panics
+    ///
+    /// If the admin is not set.
+    fn admin(env: Env) -> Address;
+
+    /// Sets whether the account is authorized to use its balance. If
+    /// `authorized` is true, `id` should be able to use its balance.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - The address being (de-)authorized.
+    /// * `authorize` - Whether or not `id` can use its balance.
+    ///
+    /// # Events
+    ///
+    /// Emits an event with topics `["set_authorized", id: Address], data =
+    /// [authorize: bool]`
+    fn set_authorized(env: Env, id: Address, authorize: bool);
+
+    /// Returns true if `id` is authorized to use its balance.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - The address for which token authorization is being checked.
+    fn authorized(env: Env, id: Address) -> bool;
+
+    /// Mints `amount` to `to`.
+    ///
+    /// # Arguments
+    ///
+    /// * `to` - The address which will receive the minted tokens.
+    /// * `amount` - The amount of tokens to be minted.
+    ///
+    /// # Events
+    ///
+    /// Emits an event with topics `["mint", admin: Address, to: Address], data
+    /// = [amount: i128]`
+    fn mint(env: Env, to: Address, amount: i128);
+
+    /// Clawback `amount` from `from` account. `amount` is burned in the
+    /// clawback process.
+    ///
+    /// # Arguments
+    ///
+    /// * `from` - The address holding the balance from which the clawback will
+    ///   take tokens.
+    /// * `amount` - The amount of tokens to be clawed back.
+    ///
+    /// # Events
+    ///
+    /// Emits an event with topics `["clawback", admin: Address, to: Address],
+    /// data = [amount: i128]`
+    fn clawback(env: Env, from: Address, amount: i128);
 }

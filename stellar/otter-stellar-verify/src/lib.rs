@@ -26,7 +26,7 @@ pub use {
         env::{Env, IntoVal, TryFromVal, TryIntoVal},
         symbol::Symbol,
         symbol_short,
-        token::{self, AdminClient, Client, Interface, MockToken},
+        token::{self, AdminClient, MockToken, TokenClient, TokenInterface},
         BytesObject, ConversionError, EnumType, FromValEnum, String, Timepoint, ToValEnum, Val,
         Vec,
     },

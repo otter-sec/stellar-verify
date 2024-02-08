@@ -54,7 +54,7 @@ fn move_token(
     max_spend_amount: i128,
     transfer_amount: i128,
 ) {
-    let token = token::Client::new(env, token);
+    let token = token::TokenClient::new(env, token);
     let contract_address = env.current_contract_address();
     // This call needs to be authorized by `from` address. It transfers the
     // maximum spend amount to the swap contract's address in order to decouple
@@ -79,7 +79,7 @@ mod test {
     use super::*;
     use otter_stellar_verify::{token, Address, Env};
     use token::AdminClient as TokenAdminClient;
-    use token::Client as TokenClient;
+    use token::TokenClient;
 
     fn create_token_contract(e: &Env, admin: Address) -> (TokenClient, TokenAdminClient) {
         let contract_address = e.register_stellar_asset_contract(admin);
@@ -132,7 +132,7 @@ mod verification {
     use super::*;
     use otter_stellar_verify::{Address, Env};
     use token::AdminClient as TokenAdminClient;
-    use token::Client as TokenClient;
+    use token::TokenClient;
 
     fn create_token_contract<'a>(e: &Env, admin: &Address) -> (TokenClient, TokenAdminClient) {
         let contract_address = e.register_stellar_asset_contract(admin.clone());
