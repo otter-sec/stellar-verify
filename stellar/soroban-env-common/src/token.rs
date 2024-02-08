@@ -15,7 +15,8 @@ pub struct MockToken {
     pub symbol: String,
     pub decimals: u8,
     pub total_supply: i128,
-    pub balances: Vec<i128>,
+    pub balances: Vec<i128>,        // balances[owner_index]
+    pub allowances: Vec<Vec<i128>>, // allowances[owner_index][spender_index]
     pub admin: Address,
 }
 
@@ -35,6 +36,7 @@ impl MockToken {
             decimals,
             total_supply,
             balances: vec![0; 100],
+            allowances: vec![vec![0; 100]; 100],
             admin,
         }
     }
@@ -52,6 +54,21 @@ impl TokenClient {
             env: env.clone(),
             address: *address,
         }
+    }
+
+    pub fn decimals(&self, env: Env) -> u32 {
+        let token = self.get_self_token();
+        token.decimals as u32
+    }
+
+    pub fn name(&self, env: Env) -> String {
+        let token = self.get_self_token();
+        token.name
+    }
+
+    pub fn symbol(&self, env: Env) -> String {
+        let token = self.get_self_token();
+        token.symbol
     }
 
     pub fn get_self_token(&self) -> MockToken {
@@ -94,6 +111,90 @@ impl TokenClient {
         let new_bal = prev_bal.saturating_add(*amount);
 
         token.balances[to.val as usize] = new_bal;
+        self.env.storage.borrow_mut().update_token(token.clone());
+    }
+
+    pub fn burn(&self, from: &Address, amount: &i128) {
+        let mut token = self.get_self_token();
+        let prev_bal = self.balance(from);
+
+        assert!(prev_bal >= *amount, "Insufficient balance");
+
+        let new_bal = prev_bal.saturating_sub(*amount);
+
+        token.balances[from.val as usize] = new_bal;
+        self.env.storage.borrow_mut().update_token(token.clone());
+    }
+
+    /// Set the allowance by `amount` for `spender` to transfer/burn from
+    /// `from`.
+    pub fn approve(
+        &self,
+        env: Env,
+        from: Address,
+        spender: Address,
+        amount: i128,
+        _expiration_ledger: u32,
+    ) {
+        let mut token = self.get_self_token();
+        token.allowances[from.val as usize][spender.val as usize] = amount;
+        self.env.storage.borrow_mut().update_token(token.clone());
+    }
+
+    /// Returns the allowance for `spender` to transfer from `from`.
+    pub fn allowance(&self, env: Env, from: Address, spender: Address) -> i128 {
+        let token = self.get_self_token();
+        token.allowances[from.val as usize][spender.val as usize]
+    }
+
+    /// Transfer `amount` from `from` to `to`, consuming the allowance of
+    /// `spender`. Authorized by spender (`spender.require_auth()`).
+    pub fn transfer_from(
+        &self,
+        env: Env,
+        spender: Address,
+        from: Address,
+        to: Address,
+        amount: i128,
+    ) {
+        let mut token = self.get_self_token();
+        let prev_bal_from = self.balance(&from);
+
+        assert!(prev_bal_from >= amount, "Insufficient balance");
+
+        let prev_allowance = self.allowance(env, from, spender);
+        assert!(prev_allowance >= amount, "Insufficient allowance");
+
+        let prev_bal_to = self.balance(&to);
+
+        let new_bal_from = prev_bal_from.saturating_sub(amount);
+        let new_bal_to = prev_bal_to.saturating_add(amount);
+
+        let new_allowance = prev_allowance.saturating_sub(amount);
+
+        token.balances[from.val as usize] = new_bal_from;
+        token.balances[to.val as usize] = new_bal_to;
+        token.allowances[from.val as usize][spender.val as usize] = new_allowance;
+
+        self.env.storage.borrow_mut().update_token(token.clone());
+    }
+
+    /// Burn `amount` from `from`, consuming the allowance of `spender`.
+    pub fn burn_from(&self, env: Env, spender: Address, from: Address, amount: i128) {
+        let mut token = self.get_self_token();
+        let prev_bal_from = self.balance(&from);
+
+        assert!(prev_bal_from >= amount, "Insufficient balance");
+
+        let prev_allowance = self.allowance(env, from, spender);
+        assert!(prev_allowance >= amount, "Insufficient allowance");
+
+        let new_bal_from = prev_bal_from.saturating_sub(amount);
+        let new_allowance = prev_allowance.saturating_sub(amount);
+
+        token.balances[from.val as usize] = new_bal_from;
+        token.allowances[from.val as usize][spender.val as usize] = new_allowance;
+
         self.env.storage.borrow_mut().update_token(token.clone());
     }
 }
