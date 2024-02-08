@@ -73,7 +73,7 @@ impl PersistentStorage {
             .any(|(k, _)| *k == key.to_val())
     }
 
-    pub fn bump<K>(&self, _: K, _: u32, _: u32) {}
+    pub fn extend_ttl<K>(&self, _: K, _: u32, _: u32) {}
 }
 
 impl TemporaryStorage {
@@ -122,7 +122,7 @@ impl TemporaryStorage {
             .any(|(k, _)| *k == key.to_val())
     }
 
-    pub fn bump<K>(&self, _: K, _: u32, _: u32) {}
+    pub fn extend_ttl<K>(&self, _: K, _: u32, _: u32) {}
 }
 
 impl InstanceStorage {
@@ -171,7 +171,7 @@ impl InstanceStorage {
             .any(|(k, _)| *k == key.to_val())
     }
 
-    pub fn bump(&self, _: u32, _: u32) {}
+    pub fn extend_ttl(&self, _: u32, _: u32) {}
 }
 
 impl Debug for Storage {

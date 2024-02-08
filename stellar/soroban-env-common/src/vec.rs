@@ -107,14 +107,21 @@ impl<T> Vec<T> {
 
     pub fn get(&self, idx: u32) -> Option<T>
     where
-        T: Copy,
+        T: Clone,
     {
         let idx = idx as usize;
         if idx >= self.size {
             return None;
         }
 
-        Some(self.data[idx])
+        Some(self.data[idx].clone())
+    }
+
+    pub fn get_unchecked(&self, idx: u32) -> T
+    where
+        T: Clone,
+    {
+        self.get(idx).expect("Call get_unchecked failed")
     }
 
     pub fn contains(&self, t: &T) -> bool
@@ -189,6 +196,23 @@ impl<T> Vec<T> {
         for z in slice {
             self.push(*z);
         }
+    }
+
+    /// Removes and returns the first item.
+    ///
+    /// ### Panics
+    ///
+    /// If the vec is empty.
+    pub fn pop_front_unchecked(&mut self) -> T
+    where
+        T: Copy,
+    {
+        if self.size == 0 {
+            panic!("pop_front_unchecked called on empty Vec");
+        }
+        let res = self.data[0];
+        self.remove(0);
+        res
     }
 }
 
@@ -327,5 +351,38 @@ impl<T: kani::Arbitrary + Default> kani::Arbitrary for Vec<T> {
             v.push(kani::any());
         }
         v
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_vec_methods() {
+        let v = [1, 2, 3, 4, 5];
+        let mut vec = Vec::new(&Env::default());
+        vec.extend_from_slice(&v);
+        assert_eq!(vec.len(), 5);
+        assert_eq!(vec[0], 1);
+    }
+
+    #[test]
+    fn test_pop_front_unchecked() {
+        let mut vec = Vec::new(&Env::default());
+        vec.push(1);
+        vec.push(2);
+        vec.push(3);
+        assert_eq!(vec.pop_front_unchecked(), 1);
+        assert_eq!(vec.pop_front_unchecked(), 2);
+        assert_eq!(vec.pop_front_unchecked(), 3);
+    }
+
+    #[test]
+    fn test_vec_from_iter() {
+        let v = [1, 2, 3, 4, 5];
+        let vec = Vec::from_iter(v.iter().copied());
+        assert_eq!(vec.len(), 5);
+        assert_eq!(vec[0], 1);
     }
 }

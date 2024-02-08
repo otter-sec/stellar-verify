@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{env::internal, Env, FromValEnum, IntoVal, ToValEnum};
+use crate::{Env, FromValEnum, ToValEnum};
 
 #[derive(Debug, Hash, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Default)]
 pub struct Address {
@@ -34,14 +34,6 @@ impl Address {
         Self {
             val: u8::from_le_bytes(bytes),
         }
-    }
-}
-
-impl<E: internal::Env> IntoVal<E, (Address, Address, i128, i128)>
-    for (Address, Address, i128, i128)
-{
-    fn into_val(self, _e: &E) -> (Address, Address, i128, i128) {
-        self
     }
 }
 

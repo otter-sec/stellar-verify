@@ -28,6 +28,7 @@ pub enum Val {
     EnumVal(EnumType),
     BytesNVal(crate::Vec<u8>),
     MapVal(Vec<(Val, Val)>),
+    TupleVal(Vec<Val>),
 }
 
 impl Val {
@@ -114,13 +115,12 @@ impl ToValEnum for bool {
     }
 }
 
-impl FromValEnum for bool {
-    fn from_val(val: Val) -> Option<bool> {
-        if let Val::BoolVal(b) = val {
-            Some(b)
-        } else {
-            None
-        }
+impl<T> FromValEnum for Option<T>
+where
+    T: FromValEnum,
+{
+    fn from_val(val: Val) -> Option<Self> {
+        Some(T::from_val(val))
     }
 }
 

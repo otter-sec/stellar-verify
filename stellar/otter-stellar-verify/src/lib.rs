@@ -9,10 +9,11 @@ pub mod map;
 pub mod prng;
 pub mod symbol;
 pub mod testutils;
+pub mod unwrap;
 pub mod xdr;
 
 pub use {
-    auth::Context,
+    auth::*,
     bytes::{Bytes, BytesN},
     crypto::Crypto,
     deploy::Deployer,
@@ -22,7 +23,7 @@ pub use {
     prng::Prng,
     soroban_env_common::{
         address::Address,
-        env::{Env, IntoVal, TryFromVal},
+        env::{Env, IntoVal, TryFromVal, TryIntoVal},
         symbol::Symbol,
         symbol_short,
         token::{self, AdminClient, Client, Interface, MockToken},
@@ -30,8 +31,8 @@ pub use {
         Vec,
     },
     stellar_sdk_macros::{
-        contract, contracterror, contractimpl, contractimport, contractmeta, contracttype,
-        verifiable, verify,
+        contract, contractclient, contracterror, contractimpl, contractimport, contractmeta,
+        contracttype, verifiable, verify,
     },
     xdr::{FromXdr, ToXdr},
 };
@@ -51,15 +52,23 @@ macro_rules! log {
 
 #[macro_export]
 macro_rules! vec {
-    () => (
-        ($crate::Vec::new(Env::default()))
-    );
-    ($elem:expr; $n:expr) => (
-        ($crate::Vec::from([$elem; $n]))
-    );
-    ($($x:expr),+ $(,)?) => (
-        $crate::Vec::from([$($x),+])
-    );
+    ($env:expr $(,)?) => {
+        $crate::Vec::new($env)
+    };
+    ($env:expr, $($x:expr),+ $(,)?) => {
+        {
+            let mut temp_vec = $crate::Vec::new($env);
+            $(temp_vec.push($x);)+
+            temp_vec
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! panic_with_error {
+    ($env:expr, $error:expr) => {{
+        panic!("{}", $error);
+    }};
 }
 
 #[cfg(any(kani, feature = "kani"))]

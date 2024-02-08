@@ -1,4 +1,4 @@
-use soroban_env_common::{env::internal, Env, FromValEnum, IntoVal, ToValEnum, Vec};
+use soroban_env_common::{Env, FromValEnum, ToValEnum, Vec};
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Bytes(pub Vec<u8>);
 
@@ -264,12 +264,6 @@ impl<const N: usize> kani::Arbitrary for BytesN<N> {
             v.push(kani::any::<u8>());
         }
         BytesN(v)
-    }
-}
-
-impl<E: internal::Env> IntoVal<E, BytesN<32>> for BytesN<32> {
-    fn into_val(self, _env: &E) -> BytesN<32> {
-        self
     }
 }
 

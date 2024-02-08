@@ -1,4 +1,4 @@
-use crate::{Address, MockToken, Storage, String, Val};
+use crate::{Address, FromValEnum, MockToken, Storage, Val};
 use std::fmt::Debug;
 use std::{
     cell::{Ref, RefCell},
@@ -57,7 +57,7 @@ impl Env {
         &self,
         _contract_address: &Address,
         _func: &crate::Symbol,
-        _args: Vec<Val>,
+        _args: crate::Vec<Val>,
     ) -> T {
         kani::any()
     }
@@ -67,7 +67,7 @@ impl Env {
         &self,
         _contract_address: &Address,
         _func: &crate::Symbol,
-        _args: Vec<Val>,
+        _args: crate::Vec<Val>,
     ) -> T {
         unimplemented!("Cross-contract calls not supported");
     }
@@ -95,20 +95,61 @@ impl Env {
         }
         contract_address
     }
+
+    pub fn authorize_as_current_contract<T>(&self, _auth_entries: Vec<T>) {
+        // nop
+    }
 }
 
 pub trait IntoVal<E: internal::Env, T> {
     fn into_val(self, e: &E) -> T;
 }
 
-pub trait TryFromVal<E: internal::Env, V: ?Sized>: Sized {
-    type Error: Debug + Into<crate::ConversionError>;
-    fn try_from_val(env: &E, v: &V) -> Result<Self, Self::Error>;
+impl<E: internal::Env, T> IntoVal<E, T> for T {
+    fn into_val(self, _env: &E) -> T {
+        self
+    }
 }
 
-impl<E: internal::Env> IntoVal<E, String> for &'static str {
-    fn into_val(self, _e: &E) -> String {
-        self.into()
+pub trait TryFromVal<E: internal::Env, V: ?Sized>: Sized {
+    type Error: Debug + Into<crate::ConversionError>;
+    fn try_from_val(env: &E, v: &Val) -> Result<Self, Self::Error>;
+}
+
+impl<E: internal::Env, T, U> TryFromVal<E, T> for U
+where
+    U: FromValEnum,
+{
+    type Error = crate::ConversionError;
+    fn try_from_val(_e: &E, v: &Val) -> Result<Self, Self::Error> {
+        Ok(U::from_val(v.clone()).unwrap())
+    }
+}
+
+pub trait TryIntoVal<E, V>
+where
+    E: internal::Env,
+    V: FromValEnum,
+{
+    // Remove the default type assignment for the Error associated type
+    type Error;
+
+    // Required method
+    fn try_into_val(&self, env: &E) -> Result<V, Self::Error>;
+}
+
+// Implement TryIntoVal for Val
+impl<E, V> TryIntoVal<E, V> for Val
+where
+    E: internal::Env,
+    V: FromValEnum,
+{
+    // Replace this with your actual error type
+    type Error = crate::ConversionError;
+
+    fn try_into_val(&self, _env: &E) -> Result<V, Self::Error> {
+        // Call V::from_val to convert Val to V
+        V::from_val(self.clone()).ok_or(crate::ConversionError)
     }
 }
 

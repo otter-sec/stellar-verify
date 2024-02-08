@@ -85,10 +85,10 @@ pub fn contractimpl(
 #[proc_macro_attribute]
 pub fn contract(
     _metadata: proc_macro::TokenStream,
-    input_: proc_macro::TokenStream,
+    input: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    let input = parse_macro_input!(input_ as syn::ItemStruct);
-    let name = &input.ident;
+    let item = parse_macro_input!(input as syn::ItemStruct);
+    let name = &item.ident;
 
     let client = format_ident!("{}Client", name, span = name.span());
 
@@ -99,7 +99,7 @@ pub fn contract(
         #[cfg(any(kani, feature = "kani"))]
         use soroban_sdk::kani;
 
-        #input
+        #item
 
         pub struct #client<'a> {
             pub env: soroban_sdk::Env,
@@ -118,7 +118,7 @@ pub fn contract(
         }
 
         impl #name {
-            fn create_token_contract<'a>(e: &Env, admin: &Address) -> (TokenClient_, TokenAdminClient_) {
+            fn create_token_contract<'a>(e: &soroban_sdk::Env, admin: &soroban_sdk::Address) -> (TokenClient_, TokenAdminClient_) {
                 let contract_address = e.register_stellar_asset_contract(admin.clone());
                 (
                     TokenClient_::new(e, &contract_address),
@@ -508,6 +508,12 @@ pub fn contracterror(
                 kani::any()
             }
         }
+
+        impl core::fmt::Display for #enum_name {
+             fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                 write!(f, "{:?}", self)
+             }
+         }
     };
 
     expanded.into()
@@ -799,4 +805,12 @@ fn abs_from_rel_to_manifest(path: impl Into<std::path::PathBuf>) -> std::path::P
     } else {
         path
     }
+}
+
+#[proc_macro_attribute]
+pub fn contractclient(
+    _: proc_macro::TokenStream,
+    input: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    input
 }
